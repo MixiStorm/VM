@@ -7,7 +7,7 @@
 // Definim map-ul pentru OpCodes
 std::map<std::string, uint8_t> OPCODES = {
     {"add", 0x01}, {"sub", 0x02}, {"cmp", 0x03}, {"set", 0x04}, 
-    {"load", 0x05}, {"store", 0x06}, {"halt", 0x07}, {"rom_read", 0x08}, 
+    {"load", 0x05}, {"sto", 0x06}, {"halt", 0x07}, {"rom_read", 0x08}, 
     {"rom_write", 0x09}, {"mov", 0x0A}, {"push", 0x0B}, {"pop", 0x0C}, 
     {"nop", 0x0D}, {"jmp", 0x0f}, {"jmq", 0x10}, {"jml", 0x11}, 
     {"jmm", 0x12}, {"mul", 0x13}, {"div", 0x14}, {"inc", 0x15}, 
@@ -17,26 +17,26 @@ std::map<std::string, uint8_t> OPCODES = {
 };
 
 std::map<std::string , VM::ARG_PATTERN> OpcodeArgsType = {
-		{"add" , VM::ARG_PATTERN::R_OR_I} , 
-		{"sub" , VM::ARG_PATTERN::R_OR_I} , 
-		{"cmp" , VM::ARG_PATTERN::R_OR_I} ,
-		{"mul" , VM::ARG_PATTERN::R_OR_I} , 
-		{"div" , VM::ARG_PATTERN::R_OR_I} , 
-		{"set" , VM::ARG_PATTERN::RI    } ,
-		{"load", VM::ARG_PATTERN::R_OR_I} , 
-		{"sto" , VM::ARG_PATTERN::R_OR_I} , 
-		{"halt", VM::ARG_PATTERN::NONE  } ,
+		{"add" , VM::ARG_PATTERN::RR} , 
+		{"sub" , VM::ARG_PATTERN::RR} , 
+		{"cmp" , VM::ARG_PATTERN::RR} ,
+		{"mul" , VM::ARG_PATTERN::RR} , 
+		{"div" , VM::ARG_PATTERN::RR} , 
+		{"set" , VM::ARG_PATTERN::RR} ,
+		{"load", VM::ARG_PATTERN::RR} , 
+		{"sto" , VM::ARG_PATTERN::RR} , 
+		{"halt", VM::ARG_PATTERN::NONE} ,
 		{"rom_read" , VM::ARG_PATTERN::RRR} ,
 		{"rom_write", VM::ARG_PATTERN::RRR} , 
         {"mem_lock" , VM::ARG_PATTERN::RR } ,
 		{"mov" , VM::ARG_PATTERN::RR    } ,
-		{"push", VM::ARG_PATTERN::R_OR_I} , 
+		{"push", VM::ARG_PATTERN::R} , 
 		{"pop" , VM::ARG_PATTERN::R     } ,
 		{"nop" , VM::ARG_PATTERN::NONE  } , 
-		{"jmp" , VM::ARG_PATTERN::R_OR_I} , 
-		{"jmq" , VM::ARG_PATTERN::R_OR_I} ,
-		{"jmm" , VM::ARG_PATTERN::R_OR_I} , 
-		{"jml" , VM::ARG_PATTERN::R_OR_I} , 
+		{"jmp" , VM::ARG_PATTERN::R} , 
+		{"jmq" , VM::ARG_PATTERN::R} ,
+		{"jmm" , VM::ARG_PATTERN::R} , 
+		{"jml" , VM::ARG_PATTERN::R} , 
 		{"inc" , VM::ARG_PATTERN::R     } ,
 		{"dec" , VM::ARG_PATTERN::R     } , 
 		{"xor" , VM::ARG_PATTERN::RRR   } , 
@@ -53,6 +53,18 @@ std::map<std::string, uint8_t> REGISTRI = {
     {"R6" , 6} , {"R7" , 7} , {"R8" , 8} , {"R9" , 9} , {"R10" , 10} , 
     {"R11" , 11} , {"R12" , 12} , {"EBP" , 13} , {"SP" , 14} ,{"PC" , 15} 
 };
+
+uint64_t String_To_Uint64(std::string& numar){
+    uint64_t error = 0xFFFFFFFFFFFFFFFF ; //Practic este 2 ^ 64  valoare default pentru eroare 
+    uint64_t nr;
+
+    std::stringstream ss(numar);
+    ss >> nr;
+    if(ss.fail()){
+        return error;
+    }
+    return nr;
+}
 
 //Creeam o mapa pentru directivele define 
 std::map<std::string , std::string> Directiva_Define;
@@ -213,4 +225,59 @@ std::vector<std::string> Expansion_Pass(std::vector<std::string>& Lines){
     #error "Sistem de operare nesuportat"
 #endif
 
-inline bool Debug_Mode = true;
+inline bool Debug_Mode = false;
+
+
+//Functia care converteste instructiunile raw direct in binar 
+std::vector<uint64_t> ToBin(std::vector<Procesed_Line> &  Source){
+    std::vector<uint64_t> Binar;
+
+    //De tinut cont ca daca imm este diferit de 0 atunci o instructiunie va lua a doua valoare in loc de registru 
+    for(Procesed_Line & PL : Source){
+        uint64_t Bucati_instructiune [5] = {0};
+        
+        if(OPCODES.count(PL.memnonic)){
+            uint8_t Opcode = OPCODES[PL.memnonic];
+            
+            Bucati_instructiune[0] = Opcode;
+            
+            size_t Dim_args = PL.args.size();
+            if(static_cast<size_t>(OpcodeArgsType[PL.memnonic]) != Dim_args){
+                std::cerr<<"La linia : "<<PL.original_line<<"  s-au introdus mai multe sau mai putine argumente de cat suporta o asemenea instructiune "<<std::endl;
+                exit(0xDEAD);
+            }
+            //Verificam daca primul argument este un registru , deoarece doar instructiunile de jump nu asteapta tot timpul un registru 
+            if(PL.args.size() > 0)
+                if(!REGISTRI.count(PL.args[0] ) && OpcodeArgsType[PL.memnonic] != VM::ARG_PATTERN::NONE ){
+                    //Daca nu este registru atunci trebuie sa verificam daca opcodul este unul de jump
+                    if(!(Opcode >= static_cast<uint8_t>(VM::OpCode::JMP) && Opcode <= static_cast<uint8_t>(VM::OpCode::JMM))){
+                        std::cerr<<"LA liniea : "<<PL.original_line <<" se asteapta introducerea unui registru ca si prim argument "<<std::endl;
+                        exit(0xDEAD);
+                    }    
+                    
+                }
+            #define imm 4
+            //Parcurgem argumentele 
+            for(size_t i = 0 ; i < PL.args.size() ; i++){
+                //Trebuie sa verific ce tip de opcod este pentru ca exista o singura exceptie in care 
+                // sto este singura care necesita o valoare imediata 
+                
+                if(REGISTRI.count(PL.args[i])){
+                    Bucati_instructiune[i + 1] = REGISTRI[PL.args[i]];
+                }
+                else{
+                    uint64_t numar = String_To_Uint64(PL.args[i]);
+                    if(numar != 0xFFFFFFFFFFFFFFFF){
+                        Bucati_instructiune[imm] = numar;
+                    }
+                }
+                
+            }
+            
+            Binar.push_back(Pack_Data(Bucati_instructiune));
+        }
+
+    }
+    return Binar;
+}
+

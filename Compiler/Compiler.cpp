@@ -137,7 +137,7 @@ std::vector<std::string> Preprocesare(std::vector<std::string> RD){
 }
 
 //First pass ->Returneaza doar o lista de instrucitune pura 
-std::vector<Procesed_Line> FirstPass(std::vector<std::string> RD){
+std::vector<Procesed_Line> FirstPass(std::vector<std::string> RD , bool Procesare_Sectiuni = true){
     //BTW RD = RawData
   
     
@@ -214,9 +214,11 @@ std::vector<Procesed_Line> FirstPass(std::vector<std::string> RD){
         }    
     };
     
-    //Procesam sectiunile de date 
-    ProcessDataSection(Section_data);
-    ProcessDataSection(Section_text);
+    if(Procesare_Sectiuni){
+        //Procesam sectiunile de date 
+        ProcessDataSection(Section_data);
+        ProcessDataSection(Section_text);
+    }
 
 
     //Procesam codul curatat si il transformam intr-o structura de date pentru a putea fii
@@ -242,7 +244,7 @@ std::vector<Procesed_Line> FirstPass(std::vector<std::string> RD){
         ss >> PL.memnonic;
 
         if(!OPCODES.count(PL.memnonic)){
-            std::cout<<"Am identificat un opcode invalid"<<std::endl;
+            std::cout<<"Am identificat un opcode invalid : "<<PL.memnonic<<std::endl;
             exit(100);
         }
 
@@ -267,11 +269,11 @@ std::vector<Procesed_Line> FirstPass(std::vector<std::string> RD){
 } 
 
 std::vector<uint64_t> SecondPass(std::vector<Procesed_Line>& PL){
-    std::vector<uint64_t> ROM;
+    std::vector<uint64_t> Binar;
     //Creeam boot_loader 
     uint64_t boot_size_ofset = 9;
 
-    uint64_t boot_Start_adress = boot_size_ofset;// Alegem din start 9 pentru ca aceasta este dimensiunea boot-loaderului pe care nu vrem sa o copiem dinou in RAM 
+    uint64_t boot_Start_adress = boot_size_ofset + VM::RAM_SIZE;// Alegem din start 9 pentru ca aceasta este dimensiunea boot-loaderului pe care nu vrem sa o copiem dinou in RAM 
     uint64_t boot_End_adress = 0; 
     uint64_t boot_Target_adress = boot_size_ofset;// Alegem din start 9 pentru ca aceasta este dimensiunea boot-loaderului pe care nu vrem sa o copiem dinou in RAM
 
@@ -296,9 +298,10 @@ std::vector<uint64_t> SecondPass(std::vector<Procesed_Line>& PL){
     //De tinut cont , sectiunea de date de tip Date este pusa prima dupa boot loader 
     // iar cea de text pe urma inainte de codul sursa
     uint64_t Total_Offset = Total_section_data_size + boot_size_ofset; 
-    boot_End_adress       = Total_section_data_size + Executabel_Size;
+    boot_End_adress       = Total_Offset + Executabel_Size + VM::RAM_SIZE;
     boot_Mem_lock_start   = boot_size_ofset         + Section_type_data_size;
     boot_Mem_lock_end     = Total_Offset            + Executabel_Size;
+    boot_Stack_init = boot_Mem_lock_end + 1;
 
 
     std::vector<std::string> Boot_Loader = {
@@ -335,14 +338,51 @@ std::vector<uint64_t> SecondPass(std::vector<Procesed_Line>& PL){
         }
         return RD;
     };  
-    Boot_Loader = inlocuire_labels(Boot_Loader);
-    std::cout<<"Afisam boot_loaderul: \n"<<std::endl;
-    for(auto l : Boot_Loader){
-        std::cout<<l<<std::endl;
+    
+    Boot_Loader = inlocuire_labels(Boot_Loader); //Codul sursa boot_loader procesat 
+    std::vector<Procesed_Line> Boot_Loader_PL; 
+    Boot_Loader_PL = FirstPass(Boot_Loader , false);
+
+    //Am uitat de variabile si ca trebuie sa le atribui o adresa si lor :((
+    std::map<std::string , uint64_t> Var_addr;
+    uint64_t Last_var_addr = 9;
+    
+    //Acum trebuie sa iteram prin toate variabilele 
+    std::string var_name;
+    for(auto& [key , value] : Variabile){
+        var_name = key.var_name;
+        Var_addr[var_name] = Last_var_addr;
+        Last_var_addr += value.size();
     }
+    
+    //Acum sa inlocuim numele variabilelor in adrese 
+    for(auto& p: PL)
+        for(auto& arg : p.args)
+            if(Var_addr.count(arg))
+                arg = std::to_string(Var_addr[arg]);
+
+    //Inlocuin Labels
+    for(auto& p: PL)
+        for(auto& arg : p.args)
+            if(Labels.count(arg))
+                arg = std::to_string(Labels[arg]);
+
+    //Generam binar pentru boot_loader 
+    std::vector<uint64_t> Binar_Bot_loader = ToBin(Boot_Loader_PL);
+    std::vector<uint64_t> Binar_Source_Code = ToBin(PL);
+    Binar.reserve(boot_Mem_lock_end);
+
+    //Generam intreg binarul acum 
+    Binar.insert( Binar.end(),Binar_Bot_loader.begin() , Binar_Bot_loader.end()); 
+    for(auto& [key , value] : Variabile){
+        Binar.insert(Binar.end() , value.begin() , value.end());
+    }
+    Binar.insert(Binar.end() , Binar_Source_Code.begin() , Binar_Source_Code.end());
+        
+    
 
 
-    return ROM;
+    return Binar;
 }
 
 
@@ -370,7 +410,6 @@ int main(){
     }
     Source_Procesed = FirstPass(Raw_Data);
     std::cout<<"Datele procesate aflate in Procesed_Line: "<<std::endl;
-
     for(auto p : Source_Procesed){
         std::cout<<p.memnonic<<" ";
         for(auto a : p.args){
@@ -379,10 +418,20 @@ int main(){
         std::cout<<std::endl;
     }
 
-    std::cout<<"[DEBUG] Vom afisa cheile din mapa pentru Labels : "<<std::endl;
-    for(auto const & [key , value] : Labels){
-        std::cout<<"KEY: "<<key<<" : "<<value<<std::endl;
+    std::cout<<"Suntem inainte sa apelam SecondPass"<<std::endl;
+    std::vector<uint64_t> Binar;
+    Binar = SecondPass(Source_Procesed);
+    std::cout<<"Dimensiune Binar: "<<Binar.size()<<std::endl;
+
+    std::ofstream file(Output_name , std::ios::binary);
+    int addres = 0;
+    for(auto r : Binar){
+        printf("Intstructiune  %d : 0x%016llX\n" ,addres, r);
+        addres++;
+        file.write(reinterpret_cast<const char*>(&r), sizeof(uint64_t));
     }
 
-    SecondPass(Source_Procesed);
+    std::cout<<"Programul a fost compilat , numar total de instructiuni : "<<Binar.size()<<std::endl;
+    
+
 }

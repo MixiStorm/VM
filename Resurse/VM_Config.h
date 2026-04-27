@@ -85,14 +85,11 @@ namespace VM{
 	//Specificam pentru fiecare opcode ce tip de argumente trebuie sa primeasca si de care sa fie 
 	// Ideea e ca R reprezinta registri , si cati de R avem atatea argumente care sunt registri in sine iar I reprezinta zona imm , care este separata 
 	enum class ARG_PATTERN{
-		NONE ,  
-		R ,
-		RR, 
-		RRR,
-		RI,
-		RRI,
-		R_OR_I,
-		CUSTOM
+		NONE  = 0,  
+		R  = 1,
+		RR = 2, 
+		RRR = 3,
+		CUSTOM = 4
 	};
  	
 }

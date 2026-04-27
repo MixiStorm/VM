@@ -124,9 +124,9 @@ void CPU::DECODER(uint64_t & instructiune){
             case VM::OpCode::PUSH:
 				Registri[VM::REG_SP] ++;
 				if(!Select_data){
-					Memorie.Write_Memory(Registri[VM::REG_SP] , Registri[rx_1]);
+					Memorie.Write_Memory(Registri[VM::REG_SP] , Registri[rx_1] );
 				}
-                Memorie.Write_Memory(Registri[VM::REG_SP] , imm);
+                Memorie.Write_Memory(Registri[VM::REG_SP] , imm );
 				break;
 
 			case VM::OpCode::POP:
@@ -162,6 +162,7 @@ void CPU::DECODER(uint64_t & instructiune){
                         Memorie.Write_Memory(Registri[rx_3] + j , Memorie.Read_Memory(adresa));
 				    	j++;
 				    }
+                    Memorie.PrintMemory();
                 }
 				break;
 
@@ -260,12 +261,12 @@ void CPU::Start(){
                 std::lock_guard<std::mutex> lock(cpu_mutex);
                 instructiune = Memorie.Read_Memory(Registri[VM::REG_PC]);
             }
-            printf("Instructiune: 0x%016llx \n" , instructiune);
+            //printf("Instructiune: 0x%016llx \n" , instructiune);
             DECODER(instructiune); //Cand face decode atunci face un pas inainte 
             //Memorie.PrintMemory();
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
     }
     printf("Programul sa oprit \n");

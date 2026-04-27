@@ -1,6 +1,7 @@
 #pragma once
 #include<string>
 #include<iostream>
+#include<sstream>
 
 std::string ToUP(std::string d){
     std::string ret;
@@ -32,6 +33,8 @@ std::string ToLow(std::string d){
         ret = d;
     return ret;
 }
+
+
 
 void PrintAsciNr(std::string s){
     char c ;

@@ -47,7 +47,7 @@ void Memory::Save_Rom(){
 }
 
 void Memory::Load_From_Rom_In_Ram_Start_UP(){
-    int Block_Size = 1000;
+    int Block_Size = 9;
 	for(int i = 0 ; i < Block_Size ; i++)
 		RAM[i] = ROM[i];
 }
@@ -85,7 +85,7 @@ void Memory::Write_Memory(uint64_t addres , uint64_t data){
                 std::cout<<"[ERROR] Trying to write to an invalid adres space : "<<addres<<" core dumped"<<std::endl;
                 std::this_thread::sleep_for(std::chrono::seconds(5));
                 exit(0xDEAD);
-            }
+            } 
         }
     }
 
@@ -111,25 +111,18 @@ void Memory::SetLockedMemory(uint64_t adr_start , uint64_t adr_end){
 void Memory::PrintMemory(){
     printf("Ram : \n");
     for(size_t i = 0 ; i < VM::RAM_SIZE ; i++){
-        if(RAM[i] == 0 && i > 10){
-            break;
-        }else if(RAM[i] != 0 && i > 10)
+        if(RAM[i] != 0)
         {
             printf("Adress: %d   0x%016llx\n" , i , RAM[i]);
         }
-        else
-            printf("Adress: %d   0x%016llx\n" , i , RAM[i]);
+
     }
 
     printf("\n\nRom : \n");
     for(size_t i = 0 ; i < VM::RAM_SIZE ; i++){
-        if(ROM[i] == 0 && i > 10){
-            break;
-        }else if(ROM[i] != 0 && i > 10)
+        if(ROM[i] != 0 )
         {
             printf("Adress: %d   0x%016llx\n" , i , ROM[i]);
         }
-        else
-            printf("Adress: %d   0x%016llx\n" , i , ROM[i]);
     }
 }

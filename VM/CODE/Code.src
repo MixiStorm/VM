@@ -1,27 +1,19 @@
-#define N 50
-#define Suma 1
-jmp 2
-_start: 
-    set R0 1  // a
-    set R1 0 // b
-    set R2 0 // Variabila temporara 
-    set R3 0 
+#define Total 3
+#define N 1
 
-fibonaci:
+_start:
+    set R0 255
+    set R10 0
+    set R11 0
 
-    push R2
-    add R0 R1
-    
-    mov R2 R0
-    mov R0 R1
-
-    mov R1 R2 
-
-    add R3 Suma
-    cmp R3 N 
+add:
+    add R11 N
+    push R11
+    cmp R11 Total
     jmq end
-    jmp fibonaci
-
+    jmp add
 
 end:
+    load R12 [SP - 1]
+    sto R10 R1
     halt
