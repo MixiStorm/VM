@@ -1,0 +1,21 @@
+PREPROCESARE    
+    Data: 22.04.2026
+        -Eliminam comentariile care sunt exact ca si in cpp 
+            ->Creeam un source_code nou dar fara comentari sau define 
+
+        -De ocupam de directivele define 
+            -> Vom creea o mapa unde key = define_name , valu = define_value 
+    
+Ce avem acum :
+    Instructiuni cu argumente : 
+        ADD R1 R3
+
+    LABELS:
+        START: 
+            instructiuni
+    
+    SECTIUNI_DE_MEMORIE:
+        .Data -> Argumentele trebuie sa fie musai .db  
+        .Text -> Argumentele trebuie sa fie musai .db 
+        .db
+        .org [ARGUMENTE]

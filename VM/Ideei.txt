@@ -1,0 +1,73 @@
+#VM 
+
+#===========ATHITECTURA===================
+
+REGISTRI = R0 , R1 , R2 , R3 // Patru variabile int 
+PROGRAM_COUNTER = PC //Un singur int
+RAM = Arry [int] -> 10 MB
+ROM = Arry [int] -> 100 MB // Aici va trebui sa creeam un sistem de a salva datele pe disk
+STACK_POINTER = SP // O alta variabila int
+
+
+# Set de instructiuni 
+
+=========MEMORIE===========
+LOAD R1, [adresa]: Copiază valoarea de la o adresă din RAM în registrul R1.
+STORE R1 ,[adresa] : Copiază valoarea din R1 înapoi în RAM.
+SET R1, valoare: Pune o valoare fixă (constantă) direct în registru.
+MOV R1 , R2 : Pune valoare din registrul R2 -> R1
+PUSH / POP : mareste si scade SP 
+
+ROM_Read [Adresa_inceput] [Adresa_end] [Adresa_ram_start]: incarca din Rom de la adresa x pana la y in memoria ram incepand de la adresa z din ram
+
+ROM_Write [Adresa_start_Ram] [Adresa_end_Ram] [Adresa_rom_start] : incarca un block de date din ram de la adresa x pana la adresa y din Ram in memoria ROM incepanad de la adresa z al ROM-ului
+
+===========ALU=============
+ADD R1, R2: R1 = R1 + R2.
+SUB R1, R2: R1 = R1 - R2.
+CMP R1, R2: Compară valorile și setează un flag (ex: equal, greater).
+
+==========CONTROL==========
+JUMP [adresa]: Sări direct la o altă linie de cod (setează PC-ul).
+JUMP_IF_EQ [adresa]: Sări doar dacă ultima comparare (CMP) a fost egală.
+HALT: Oprește execuția CPU-ului.
+
+
+=========UPCODE============
+
+Add -> 0x01 
+SUB -> 0x02
+CMP -> 0x03
+SET -> 0x04
+LOAD -> 0x05
+STORE -> 0x06
+JUMP -> 0x07
+JUMP_IF_EQ -> 0x08
+HALT -> 0x09
+ROM_Read -> 0x0A
+ROM_Write -> 0x0B
+MOV -> 0x0C
+
+==============IMPARTIREA_SPATIULUI_DE_MEMORIE=====================
+
+Primele adrese de la 0 -> 16384 sunt adrese pentru RAM 
+Adresele de la 16384 -> 180224 sunt adrese pentru ROM
+
+==========DESCRIERE=============
+
+Vom utiliza 64 de biti pentru a memora upcodul exmpu : 8 biti UPCODE  4 biti R1 4 biti R2  4 biti R3 44 Biti date sau adrese 
+Memoria ram va folosi 64 de biti pentru fiecare pozitie imparte 
+
+
+
+La inceputul executiei programul va incarca primi 512 b din rom in Ram , iar pe urma va incepe sa decodeze instructiunile din ram
+
+
+======================Operati pe biti =============================
+
+XOR rx_1 rx_2 rx_3 | Se performeaza operatia xor pe valorile rx_2 si rx_3 si vor fi salvate in rx_1
+AND rx_1 rx_2 rx_3 | Se performeaza operatia and pe valorile rx_2 si rx_3 si vor fi salvate in rx_1
+OR  rx_1 rx_2 rx_3 | Se performeaza operatia or  pe valorile rx_2 si rx_3 si vor fi salvate in rx_1
+NOT rx_1 rx_2      | Se performeaza operatia not pe valorile rx_2 va fi salvata in rx_1
+SHL rx_1 rx_2 rx_3 | Se performeaza operatia Shift left  pe valorile rx_2 si rx_3 reprezinta numarul de poziti shiftate si rezultatul va fii salvat in rx_1
+SHR rx_1 rx_2 rx_3 | Se performeaza operatia Shift right pe valorile rx_2 si rx_3 reprezinta numarul de poziti shiftate si rezultatul va fii salvat in rx_1

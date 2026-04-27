@@ -1,0 +1,33 @@
+===========================TODO================================
+
+
+Asamblator:
+    -Rescriere pentru integrare de logica noua 
+    -Adaugare suport pentru XOR OR ADN NOT SHIFT_LEFT SHIFT_RIGHT CALL si RET
+    -Adaugare verificare pentru numarul de argumente per instructiune
+        -> De implementat o mapa cu numele instructiunei ca si cheie , si valoare numarul de argumente
+           si timpul , registri/imm
+    -Verificare pentru introducerea numelui gresit pentru OPCODE sau Label 
+    -Verificarea existentei de declarare dubla de label 
+    -Generare automata de load_data din rom in ram pentru cele 8 instructiuni de start si creearea unui ofsset inteleigent 
+    -Adaugarea de suport nativ pentru calcule matematice simpe in asm ex: MOV R1 [SP + 1] muta  in r1 valoare lui sp + 1 , adica va genera instructiuni automate in care incrementeaza sp , dupa il pune in r1 si dupa decrementeaza sp 
+    !!!!!
+    Prioritate :
+        -De implementat directiva .org care va specifica ca codul de dupa el va fii asezat incepanad de la adresa specificata 
+    [+]    -Impementarea directivei #define ca si in C sau C++ 
+        -De implementat suport pentru a include fisiere separate gen libs 
+        -De implementat suport pentru sectiuni de memoriei  gen .data .bass .text si asea mai departe 
+        
+    Timp necesar estimativ : 5 - 20 ore 
+
+VM:
+    -Implementare in debug vizual afisarea memoriei din jurul PC , ca sa vedem si noi ce anume executa si urmeaza sa execuite VM-ul nu doar urmatoare instructiune incarcata ce urmeaza sa fie executata 
+    -IMplementare de suport text output si input si afisarea sa folosind raylib
+    -Suport pentru introducerea locatiei pentru locatia fisierului .ROM nu doar hardcoded , pentr a putea avea mai multe programe in fisiere separate pe care sa le execute separtat fara ca sa fie suprascrise tot timpul 
+        in acelasi fisier .rom 
+    -Creare de interfata grafica simpla pentru utilizarea VM-ului 
+    -Creare unei clase care sa gestioneze inputurile Raylib pentru a adauga delay automat inafara codului sursa ce se ruleaza in clasa gpu 
+    -Cauta probleme sau ideei si adaugale in acest fisier 
+    -MOdificaare : CPU -> sa blocheze mutex  doar la scrierea in ram , nu tot timpul cand executa o instructiune pentru ca nu e neaparat sa scrie in ram de fiecare data 
+
+    Timp necesar estivamtiv : forever
