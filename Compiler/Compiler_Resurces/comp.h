@@ -215,15 +215,6 @@ std::vector<std::string> Expansion_Pass(std::vector<std::string>& Lines){
     return Exp;
 }
 
-#if  defined(_WIN32) || defined(_WIN64)
-    inline std::string File_name = "C:\\Users\\goguj\\Desktop\\VM\\VM\\CODE\\Code.src";
-    inline std::string Output_name = "C:\\Users\\goguj\\Desktop\\VM\\VM\\CODE\\ROM.rm";
-#elif defined(__linux__)
-    inline std::string File_name = "/home/mixistorm/Desktop/VM/VM/CODE/Code.src";
-    inline std::string Output_name = "/home/mixistorm/Desktop/VM/VM/CODE/ROM.rm";
-#else
-    #error "Sistem de operare nesuportat"
-#endif
 
 inline bool Debug_Mode = false;
 

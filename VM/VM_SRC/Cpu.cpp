@@ -125,6 +125,7 @@ void CPU::DECODER(uint64_t & instructiune){
 				Registri[VM::REG_SP] ++;
 				if(!Select_data){
 					Memorie.Write_Memory(Registri[VM::REG_SP] , Registri[rx_1] );
+                    break;
 				}
                 Memorie.Write_Memory(Registri[VM::REG_SP] , imm );
 				break;

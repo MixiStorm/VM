@@ -9,7 +9,7 @@ void StartCpu(CPU & c){
 }
 
 int main(){
-    CPU cpu("C:\\Users\\goguj\\Desktop\\VM\\VM\\CODE\\ROM.rm");
+    CPU cpu(Output_name);
     std::thread cpuThread(StartCpu , std::ref(cpu));
 
     Memory* mem = cpu.GetMem();
