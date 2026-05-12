@@ -1,10 +1,31 @@
 #include"Cpu.h"
 
-CPU::CPU(std::string ROM_NAME): ROM_FILE_NAME(ROM_NAME) , Registri(16 , 0), Memorie(ROM_NAME) ,
+CPU::CPU(Memory* mem , Intrerupere* INT): Memorie(mem) ,SysIntreruperi(INT)   , Registri(16 , 0) ,
     Unitatea_Logica_Aritmetica(&Registri , &CPU_FLAG) {}
 
 CPU::~CPU(){}
 
+void CPU::INT_RUTIN(){
+    uint64_t INT_ID = SysIntreruperi->GetIntrerupere();
+
+    auto PUSH = [&](uint64_t val){
+        Registri[VM::REG_SP] ++;
+		Memorie->Write_Memory(Registri[VM::REG_SP] , val );	
+    };
+    //Dupa ce obtinem codul de interupere trebuie sa salvam toate registrele pe stiva 
+    for(auto& reg : Registri)
+        PUSH(reg);
+    PUSH(CPU_FLAG);            
+    
+    //Acum procesorul trebuie sa sara la tabela din memorie care ii spune unde se afla codul ce gestioneaza intreruperile 
+    uint64_t JUMP_TO = Memorie->Read_Memory(INT_ID + VM::INT_TABEL);
+    
+    Registri[VM::REG_PC] = JUMP_TO;
+
+    //Dezactivam flagul de intreruperi pentru ca acum gestionam intreruperea curenta 
+    SysIntreruperi->DisableIntreruperi();
+
+}
 
 void CPU::DECODER(uint64_t & instructiune){
 //Functia doar va decoada instrucitunea si va apela functiile necesare/modulele necesare pentru a executa instructiune 
@@ -73,9 +94,9 @@ void CPU::DECODER(uint64_t & instructiune){
             
             case VM::OpCode::STORE:
                 if(!Select_data)
-                    Memorie.Write_Memory(Registri[rx_1] , Registri[rx_2]);
+                    Memorie->Write_Memory(Registri[rx_1] , Registri[rx_2]);
                 else
-                    Memorie.Write_Memory(Registri[rx_1] , imm);
+                    Memorie->Write_Memory(Registri[rx_1] , imm);
                 break;
             
             case VM::OpCode::HALT:
@@ -124,15 +145,15 @@ void CPU::DECODER(uint64_t & instructiune){
             case VM::OpCode::PUSH:
 				Registri[VM::REG_SP] ++;
 				if(!Select_data){
-					Memorie.Write_Memory(Registri[VM::REG_SP] , Registri[rx_1] );
+					Memorie->Write_Memory(Registri[VM::REG_SP] , Registri[rx_1] );
                     break;
 				}
-                Memorie.Write_Memory(Registri[VM::REG_SP] , imm );
+                Memorie->Write_Memory(Registri[VM::REG_SP] , imm );
 				break;
 
 			case VM::OpCode::POP:
 				if(Select_data){
-					Registri[rx_1] = Memorie.Read_Memory( Registri[VM::REG_SP]);
+					Registri[rx_1] = Memorie->Read_Memory( Registri[VM::REG_SP]);
 				}
 
                 Registri[VM::REG_SP] --;
@@ -143,10 +164,10 @@ void CPU::DECODER(uint64_t & instructiune){
             
             case VM::OpCode::LOAD:
                 if(!Select_data){
-                    Registri[rx_1] = Memorie.Read_Memory(Registri[rx_2]);
+                    Registri[rx_1] = Memorie->Read_Memory(Registri[rx_2]);
                 }
                 else
-                    Registri[rx_1] = Memorie.Read_Memory(imm);
+                    Registri[rx_1] = Memorie->Read_Memory(imm);
                 break;
 
             case VM::OpCode::ROM_Read:
@@ -158,12 +179,12 @@ void CPU::DECODER(uint64_t & instructiune){
                     for(size_t i = Registri[rx_1] ; i <= Registri[rx_2] ; i++){
                     
                         size_t adresa = i;
-                        uint64_t data = Memorie.Read_Memory(adresa);
+                        uint64_t data = Memorie->Read_Memory(adresa);
                     
-                        Memorie.Write_Memory(Registri[rx_3] + j , Memorie.Read_Memory(adresa));
+                        Memorie->Write_Memory(Registri[rx_3] + j , Memorie->Read_Memory(adresa));
 				    	j++;
 				    }
-                    Memorie.PrintMemory();
+                    Memorie->PrintMemory();
                 }
 				break;
 
@@ -172,7 +193,7 @@ void CPU::DECODER(uint64_t & instructiune){
 				int j = 0 ;
 				for(size_t i = Registri[rx_1] ; i <= Registri[rx_2] ; i++){
                     int addresa = Registri[rx_3] + j + VM::RAM_SIZE;
-				    Memorie.Write_Memory( addresa ,  Memorie.Read_Memory(i));
+				    Memorie->Write_Memory( addresa ,  Memorie->Read_Memory(i));
 					j++;
 				}
 				}
@@ -222,7 +243,7 @@ void CPU::DECODER(uint64_t & instructiune){
                 JUMP = true; //Important  ca sa nu marim automat program counterul 
 
                 Registri[VM::REG_SP]++;
-                Memorie.Write_Memory(Registri[VM::REG_SP] ,Registri[VM::REG_PC] + 1  );
+                Memorie->Write_Memory(Registri[VM::REG_SP] ,Registri[VM::REG_PC] + 1  );
                 if(!Select_data)    
                     Registri[VM::REG_PC] = Registri[rx_1];
                 else
@@ -231,13 +252,13 @@ void CPU::DECODER(uint64_t & instructiune){
                 break;
             case VM::OpCode::RET:
                 JUMP = true; //Important  ca sa nu marim automat program counterul 
-                Registri[VM::REG_PC] = Memorie.Read_Memory(Registri[VM::REG_SP]);
+                Registri[VM::REG_PC] = Memorie->Read_Memory(Registri[VM::REG_SP]);
 
                 Registri[VM::REG_SP]--;
                 break;
                 
             case VM::OpCode::MEM_LOCK:
-                Memorie.SetLockedMemory(Registri[rx_1] , Registri[rx_2]);
+                Memorie->SetLockedMemory(Registri[rx_1] , Registri[rx_2]);
                 break;
             }   
 
@@ -248,21 +269,18 @@ void CPU::DECODER(uint64_t & instructiune){
 
 
 void CPU::Start(){
-    Memorie.PrintMemory();
+    Memorie->PrintMemory();
         
     while(this->RUNING){
-        
+
+        //Daca detectam o intrerupere incepem gestionarea sa 
+        if(SysIntreruperi->CheckIntrerupere()){
+            INT_RUTIN();
+        }
+
         if(StepIn)
         {
-            //Punem aceste functi in bloccul acesta de cod pentru a evita ca gpu-ul sa aceseze memoria cand 
-            // Cpu face el insusi acces la memoria respectiva 
-            //Prin punera de "{}" creeam un nou block de cod si atunci mutex iese din scop la finalizarea acestui block de cod 
-            uint64_t instructiune;
-            {
-                std::lock_guard<std::mutex> lock(cpu_mutex);
-                instructiune = Memorie.Read_Memory(Registri[VM::REG_PC]);
-            }
-            //printf("Instructiune: 0x%016llx \n" , instructiune);
+            uint64_t instructiune = Memorie->Read_Memory(Registri[VM::REG_PC]);
             DECODER(instructiune); //Cand face decode atunci face un pas inainte 
             //Memorie.PrintMemory();
         }
@@ -271,5 +289,5 @@ void CPU::Start(){
 
     }
     printf("Programul sa oprit \n");
-    Memorie.PrintMemory();
+    Memorie->PrintMemory();
 }

@@ -71,3 +71,52 @@ OR  rx_1 rx_2 rx_3 | Se performeaza operatia or  pe valorile rx_2 si rx_3 si vor
 NOT rx_1 rx_2      | Se performeaza operatia not pe valorile rx_2 va fi salvata in rx_1
 SHL rx_1 rx_2 rx_3 | Se performeaza operatia Shift left  pe valorile rx_2 si rx_3 reprezinta numarul de poziti shiftate si rezultatul va fii salvat in rx_1
 SHR rx_1 rx_2 rx_3 | Se performeaza operatia Shift right pe valorile rx_2 si rx_3 reprezinta numarul de poziti shiftate si rezultatul va fii salvat in rx_1
+
+
+
+====================INTRERUPERI SI GPU/ IO_MAPING======================
+
+Pentru a simula un computer real avem nevoie de IO_MAPING pentru diverse comunicari cu I/O -ul 
+
+Pentru fiecare dispozitiv de input output vom aloca un spatiu de memorie din RAM pentru a se comunica  cu acel dispozitiv in parte 
+    =========GPU=========
+        GPU-ul va avea propiul VRAM dar trebuie sa comunice cumva si cu CPU-ulul , asa ca vom aloca ultimi 10% din dimensiunea RAM pentru comunicarea cu CPU 
+        ->Cum se realizezaza comunicarea cu CPU ?
+            -La prima adresa din memoria dedicata comunicari , se va pune o valoare magica care sa descrie cine comunica si are control asupra memoriei in acel moment 
+                pentru a specifica spre exemplu ca CPU-ul a scris date in zona de memorie va pune la prima adresa dediccata memoriei comunicari valoarea : 0xFFAA , 
+                iar daca GPU-ul vrea sa transmita date catre CPU va pune valoarea : 0xAAFF , iar daca la adresa resprecttiva se afla valoarea 0x0000 atunci inseamna ca 
+                nu se realizezaza nici o comunicare si ambele dispozitive asteapta ca celalt sa transmita ceva date .
+
+        =>Initializare GPU:
+            -GPU-ul initial nu este initializat deoarece are  3 moduri de functionare separate care trebuie specificate la Initializare / pornirea VM-ului 
+                -> Initializare:
+                    La StartUp GPU-ul o sa se uite la prima adresa de memorie dedicata comunicari unde va astepta sa vada vloarea 0xFFAA iar pe urma codul de initializare 
+                        CODURI_DE_INITIALIZARE : 
+                            0x0 = NONE (Asta ii va specifica la GPU ca nu trebuie sa ruleze sau sa fie initializat)
+                            0x1 = TEXT_MODE
+                            0x2 = 2D_MODE
+                            0x3 = 3D_MODE
+                            0x4 = DEBUG_MODE
+
+                    Exemplu de initializare , 0xFFAA , 0x1 
+
+                IMPORTANT:
+                    CPU-ulul si GPU ruleaza pe doua threaduri separate cea ce poate duce la RACE CONDITON , de oarece doar citirea primei adrese de memorie care specifica daca 
+                    sa realizat comunicarea este protejata de MUTEX , restul memoriei nu este protejata din motive de performanta , nu vrem sa blocam threadul procesorului cat timp 
+                    gpu-ul citeste din memorie de oarece citirea necestia mult prea mult timp care mananca din preformanta , asa ca se recomanda ca prima data sa se scrie datele si dupa 
+                    acea sa se seteze FLAGUl de comunicare care este safe , de oarece daca setezi prima data FLAGUL 0xFFAA si pe urma continui sa scrii date in memorie , exista posibilitatea 
+                    ca GPU-ul sa inceapa sa citeasca din memorie in acelasi timp in care cpu-ul screi , acest lucru ducand la un RACE CONDICION care este definit printrun comportament neasteptat 
+
+                ->TEXT_MODE:
+                    -Va afisa strict doar Text de culoare alba pe un fundal negru 
+                    -El va citi automat date din zona de memorie dedicata comuniari si va trata toate datele ca fiind text asci pe care il va afisa pe ecran 
+
+                ->CELELALTE MODURI NU SUNT SUPORTATE INCA !!!!
+                    Coming son
+
+    ===========INTRERUPERI=============
+    Vom aloca zona de memorie inainte de zona dedicata pentru GPU ca zona dedicata pentru intreruperi , zona unde se va afla codul dedicat pentru a gestiona intreruperile 
+    Acesta zona de memorie va fii undeva la 5% din dimensiunea TOTALA a RAM-ului 
+
+    Iar alti 5% din dimensiune RAM care se afla inaintea zoneni de memorie dedicata codului de intreruperi va fii dedicata dispozitivelor de I/O care vor aseza datele lor 
+    spre exemplu KEYBOARD va pune la o adresa specifica o tasta apasata , mai exact o tasta dedicata apasata , scan codul acelei taste in sine si asa mai depare in functie de dispozitivul de I/O 

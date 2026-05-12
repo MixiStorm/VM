@@ -1,4 +1,5 @@
 #pragma once
+#include"Memory.h"
 #include"VM_Config.h"
 
 class CPU;
@@ -14,14 +15,15 @@ private:
     CPU* cpu;
 
     std::vector<uint64_t> REG;
+    Memory* mem;
 
     bool Cpu_triger = false; //Aceasta variabila devine true doar daca apesi tasta D
 
 public:
-    GPU(std::vector<uint64_t>* reg , std::vector<uint64_t>* rom , std::vector<uint64_t>* ram , CPU* cpu);
+    GPU(Memory* mem);
 
     void Start();
 
-    void PrintRegistri(std::vector<uint64_t> registri);
+    //void PrintRegistri(std::vector<uint64_t> registri);
     
 };
