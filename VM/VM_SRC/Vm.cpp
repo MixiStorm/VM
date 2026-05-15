@@ -13,6 +13,7 @@ class MotherBoard{
 private:
 //Sistemul de intreruperi     
 
+
 public:
     MotherBoard(std::string & ROM ): mem(ROM) , cpu(&mem , &INT) , gpu(&mem){
     }
@@ -20,6 +21,7 @@ public:
     void StartUP(){
         //Trebuie sa creeam un nou thread care sa ruleze separat pentru cpu iar gpu-ul o sa ruleze pe threadul main 
         std::thread cpuThread(&MotherBoard::StartCPU , this, std::ref(this->cpu));
+
 
         //Acum initializam si pornim GPU-ul
         gpu.Start();

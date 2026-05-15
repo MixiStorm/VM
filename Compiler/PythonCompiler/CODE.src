@@ -1,0 +1,29 @@
+#define Total 3
+#define N 1
+#include"video.src"
+
+_start:
+    set R0 255
+    set R10 0
+    set R11 0
+
+//Acesta este un comentariu aiurea in tranvai 
+add:
+    add R11 N
+    push R11 //acesta este un alt comentariu 
+    cmp R11 Total
+    jmq end
+    jmp add
+
+end:
+    load R12 [SP-1]
+    sto R10 R1
+    halt
+
+text. {
+    set R0 11203123
+    set R12 12234
+    load r11 R12
+    load R0 [arry * 5 - offset]
+
+}
