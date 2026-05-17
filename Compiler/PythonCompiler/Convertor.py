@@ -51,7 +51,7 @@ def Convert():
 
 #Acum trebuie sa creeam AST-ul 
 
-expresie = "5 * ( 7 + 2 ) - ( 3 - 2 * 4 ) / 5".split()
+expresie = "5 * ( 4  / 4 ) *  3 - 1 ".split()
 
 print(expresie)
 print(expresie[2:])
@@ -88,74 +88,109 @@ def afiseaza_ast(nod, prefix="", este_ultimul=True):
 
 def Parse(expr , poz = 0):
 
-	#Puterea fiecarui poerator 
-	operator_power = {
-		"*": 2.0,
-		"/": 1.9,
-		"+": 1.0,
-		"-": 0.9
-	}
-	
+    #Puterea fiecarui poerator 
+    operator_power = {
+        "*": 2.0,
+        "/": 2.0,
+        "+": 1.0,
+        "-": 1.0
+    }
+    
 
-	#Daca este doar un numar il retrunam si gata , presupunand ca toate expresiile sunt scrise corect 
-	if len(expr) == 1 :
-		return expr[0]
+    #Daca este doar un numar il retrunam si gata , presupunand ca toate expresiile sunt scrise corect 
+    if len(expr) == 1 :
+        return expr[0]
 
-	if expr[0] == '(' and expr[-1] == ')':
-		# Verificăm totuși dacă paranteza de la început se închide chiar la sfârșit, nu pe parcurs
-		contor = 0
-		inchisa_la_final = True
-		
-		for i in range(len(expr) - 1):
-		    if expr[i] == '(': contor += 1
-		    if expr[i] == ')': contor -= 1
-		    if contor == 0 and i > 0:
-		        inchisa_la_final = False
-		        break
-		if inchisa_la_final:
-		    return Parse(expr[1:-1])
-
-
-	#Cautam cel mai important operator de pana acum 
-	operatori = "+-*/"
-	paranteze = "()"
-	last_operator_power = 10  #Am pus un numar random pentru ca trebuie sa fie mai mari ca ori ce putere de operatori predefinita pana acum 
-	poz = 0
-	depth = 0
+    if expr[0] == '(' and expr[-1] == ')':
+        # Verificăm totuși dacă paranteza de la început se închide chiar la sfârșit, nu pe parcurs
+        contor = 0
+        inchisa_la_final = True
+        
+        for i in range(len(expr) - 1):
+            if expr[i] == '(': contor += 1
+            if expr[i] == ')': contor -= 1
+            if contor == 0 and i > 0:
+                inchisa_la_final = False
+                break
+        if inchisa_la_final:
+            return Parse(expr[1:-1])
 
 
-	for i in range(len(expr)):
-		if expr[i] == "(":
-			depth += 1
+    #Cautam cel mai important operator de pana acum 
+    operatori = "+-*/"
+    paranteze = "()"
+    last_operator_power = float('inf')  #Am pus un numar random pentru ca trebuie sa fie mai mari ca ori ce putere de operatori predefinita pana acum 
+    poz = -1
+    depth = 0
 
-		elif expr[i] == ")":
-			depth -= 1
+
+    for i in range(len(expr) - 1 , -1 , -1):
+        if expr[i] == "(":
+            depth -= 1
+
+        elif expr[i] == ")":
+            depth += 1
 
 
-		if expr[i] in operatori :
-			"""
-				Logica este in felul urmator 
-					Daca puterea operatorului curent este mai mica ca ultimul il atribuim 
-					Pe urma o sa verificam daca am ajuns la sfarsitul listei , daca da ne oprim si returnam 
-			"""
-			if operator_power[expr[i]] + (depth * 10 ) <= last_operator_power:
-				last_operator_power = operator_power[expr[i]]
-				poz = i
+        if expr[i] in operatori :
+            """
+                Logica este in felul urmator 
+                    Daca puterea operatorului curent este mai mica ca ultimul il atribuim 
+                    Pe urma o sa verificam daca am ajuns la sfarsitul listei , daca da ne oprim si returnam 
+            """
+            if operator_power[expr[i]] + (depth * 10 ) < last_operator_power:
+                last_operator_power = operator_power[expr[i]] + (depth * 10 )
+                poz = i
 
-	stanga = expr[ :poz]
-	dreapta = expr[poz + 1 : ]
-	op = expr[poz]
-	
-	return BinOP(
-		Parse(stanga),
-		op ,
-		Parse(dreapta)
-		)
+    if poz == -1:
+    	return expr[0]
+
+    stanga = expr[:poz]
+    dreapta = expr[poz + 1 :]
+    op = expr[poz]
+    
+    return BinOP(
+        Parse(stanga),
+        op ,
+        Parse(dreapta)
+        )
+
 
 
 AST = Parse(expresie)
 afiseaza_ast(AST)
 
+
+#Calulare AST 
+def eval_ast(nod):
+
+
+	#Luam cazul de baza in care avem un simplu numar 
+	if not isinstance(nod , BinOP):
+		return int(nod)
+
+	#Acum vom merge pe ramura stanga pana cand gasim un numar 
+	stanga = eval_ast(nod.stanga)
+
+	#acum vom merge pe ramura dreapta pana cand gasim un numar 
+	dreapta = eval_ast(nod.dreapta)
+
+	#Acum vom realiza calculele 
+	if nod.op == "+":
+		return stanga + dreapta
+	elif nod.op == "-":
+		return stanga - dreapta
+	elif nod.op == "*":
+		return stanga * dreapta
+	elif nod.op == "/":
+		if stanga == 0:
+			ValueError("Nu se poate realiza impartirea cu zero ")
+			raise 
+		else:
+			return stanga / dreapta
+
+rezultat = eval_ast(AST)
+print(f"Rezultatul expresiei este : {rezultat}")
 
 
 

@@ -172,9 +172,9 @@ def Parse(expr , poz = 0):
     #Puterea fiecarui poerator 
     operator_power = {
         "*": 2.0,
-        "/": 1.9,
+        "/": 2.0,
         "+": 1.0,
-        "-": 0.9
+        "-": 1.0
     }
     
 
@@ -200,17 +200,17 @@ def Parse(expr , poz = 0):
     #Cautam cel mai important operator de pana acum 
     operatori = "+-*/"
     paranteze = "()"
-    last_operator_power = 10  #Am pus un numar random pentru ca trebuie sa fie mai mari ca ori ce putere de operatori predefinita pana acum 
-    poz = 0
+    last_operator_power = float('inf')  #Am pus un numar random pentru ca trebuie sa fie mai mari ca ori ce putere de operatori predefinita pana acum 
+    poz = -1
     depth = 0
 
 
-    for i in range(len(expr)):
+    for i in range(len(expr) - 1 , -1 , -1):
         if expr[i] == "(":
-            depth += 1
+            depth -= 1
 
         elif expr[i] == ")":
-            depth -= 1
+            depth += 1
 
 
         if expr[i] in operatori :
@@ -219,12 +219,15 @@ def Parse(expr , poz = 0):
                     Daca puterea operatorului curent este mai mica ca ultimul il atribuim 
                     Pe urma o sa verificam daca am ajuns la sfarsitul listei , daca da ne oprim si returnam 
             """
-            if operator_power[expr[i]] + (depth * 10 ) <= last_operator_power:
-                last_operator_power = operator_power[expr[i]]
+            if operator_power[expr[i]] + (depth * 10 ) < last_operator_power:
+                last_operator_power = operator_power[expr[i]] + (depth * 10 )
                 poz = i
 
-    stanga = expr[ :poz]
-    dreapta = expr[poz + 1 : ]
+    if poz == -1:
+        return expr[0]
+
+    stanga = expr[:poz]
+    dreapta = expr[poz + 1 :]
     op = expr[poz]
     
     return BinOP(
