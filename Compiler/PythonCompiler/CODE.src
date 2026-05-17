@@ -1,6 +1,6 @@
 #define Total 3
 #define N 1
-#include"video.src"
+
 
 _start:
     set R0 255

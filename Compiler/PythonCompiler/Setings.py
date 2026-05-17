@@ -57,6 +57,20 @@ GPU_IO = RAM_SIZE - (RAM_SIZE / 100 ) * 10; #Adresa de start din memorie dedicat
 INT_TABEL = GPU_IO -  (RAM_SIZE / 100 ) * 5; #Adresa de start a codului pentru a menegerea intreruperile
 INT_DATA = INT_TABEL - (RAM_SIZE / 100 ) * 5; #Adresa de start unde se vor pune datele de catre dispozitivele externe 
 
+#Compiler Vars
+BOOT_LOADER_SIZE = 9  
+CURENT_ADDR = BOOT_LOADER_SIZE - 1 # Memoreaza pentru moment adresa curenta la care am ajuns cu generarea binarului  
+
+Source_File_Name = ""
+dir_include = [] #lista folosita in Preprocesare pentru a memora fisierele deja incluse 
+dir_define = {}
+LabelsDict = {}
+
+Variabile = {
+    "var":{},
+    "arr":{}
+}
+
 
 if __name__ == "__main__":
     pass

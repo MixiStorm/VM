@@ -1,201 +1,5 @@
-import os , Setings
-
-#Variabile globale 
-Source_File_Name = ""
-dir_include = [] #lista folosita in Preprocesare pentru a memora fisierele deja incluse 
-dir_define = {}
-LabelsDict = {}
-
-Variabile = {
-    "var":{},
-    "arr":{}
-}
-
-
-def ReadFile(File_name: str):
-    global Source_File_Name
-    #VOm incepe prima data prin a citi fisierul sursa 
-    Source_File_Name = File_name
-
-    #Variabila care memoreaza continutul fisierului 
-    Content = []
-    with open(Source_File_Name, "r" , encoding="utf-8") as f : 
-        Content = f.readlines()
-
-    #Inainte sa returnam lisata de linii trebuie sa o curatam prima data de new line
-    for i , line in enumerate(Content):
-        Content[i] = line.strip() 
-
-    #Acum vom returna continutul 
-    return Content
-
-def Preprocesare(Lines : list):
-    global Source_File_Name
-    global dir_include
-    global dir_define
-    #Vom face doua treceri , una care detecteaza defineurile si includurile si cealalta trecere pentru inlocuirea definerilor sau integrarea codului nou introdus 
-    
-    New_Source_Code = []
-    Source_code = []
-
-    dir_include.append(Source_File_Name)
-
-    for i , line in enumerate(Lines):
-        #eliminam liniile goale din lista 
-        if len(line) == 0:
-            continue
-        if "//" in line: 
-            line = line[:line.find("//")]
-            Lines[i] = line
-
-
-        if line.startswith("#define") :
-            new_line = line[len("#define"):].split()
-        
-            nume = new_line[0]
-            value = new_line[1]
-            dir_define[nume] = value
-        
-            continue
-
-        #Aici ne ocupam de copierea includerilor 
-        if line.startswith("#include"):
-            #Daca exista o includere atunci obtinem numele acesteia , citim fisierul sursa si repetam procesul recursiv pana includem toate librariile necesare 
-            include_name = line[len("#include"):].replace('"' , "").split()[0]
-            if len(dir_include) != 0 :
-                if include_name in dir_include:
-                    continue
-                else:
-                    dir_include.append(include_name)
-
-            New_SRC = ReadFile(include_name)
-            New_Source_Code += Preprocesare(New_SRC)
-            continue
-
-        Source_code.append(Lines[i])
-
-    New_Source_Code += Source_code
-
-    return New_Source_Code 
-
-
-#FUnctia de tokenizare , aceasta functie va separa fiecare linie in tokenuri diferite 
-def Tokenizare(Lines : list ):
-    global dir_define
-    All_Tokens = []
-    delimitatori = "{}[]()+=-*/," #Delimitatori pe care ii vom folosi pentru a separa tokenurile 
-
-    def AddToken(token:str):
-        if token in dir_define:
-            token = dir_define[token]
-        
-        if len(token) != 0 : 
-            Line_Tokens.append(token)
-
-    for line in Lines:
-
-        Line_Tokens = []
-        curent = ""
-        #o sa verificam caracter cu careacter pentru a separa tokenurile  
-        for chr in line:
-
-            if chr in delimitatori:
-                
-                if curent != "":
-                    AddToken(curent)
-                    curent = ""
-
-                Line_Tokens.append(chr)
-
-            elif chr.isspace():
-                if curent != "":
-                    AddToken(curent)
-                    curent = ""
-                
-            else:
-                curent += chr
-        AddToken(curent)
-
-        if len(Line_Tokens) != 0:
-            All_Tokens.append(Line_Tokens)
-    
-    return All_Tokens
-
-#detectam toate labelurile 
-
-def Procesare_labels_and_vars(Lines: list):
-    global LabelsDict 
-    global Variabile
-    
-    New_Tokens = []
-    in_section = False
-    section_type = ""
-    
-    # Folosim un iterator/enumerator pentru a parcurge liniile curat, linie cu linie
-    for current_index, line in enumerate(Lines):
-        # Sărim peste liniile complet goale pentru siguranță
-        if not line:
-            continue
-            
-        if not in_section:
-            # 1. Procesarea de label-uri (ex: "main:")
-            # Verificăm dacă primul token conține caracterul ":" la sfârșit
-            if line[0].endswith(":"):
-                label_name = line[0][:-1]
-                LabelsDict[label_name] = len(New_Tokens) # Folosește lungimea curentă din New_Tokens, nu indexul brut!
-                continue
-            
-            # 2. Detectarea intrării într-o secțiune (ex: "section data. {")
-            if line[0] == "section":
-                in_section = True
-                
-                # Validăm tipul de secțiune (trebuie să fie al doilea token)
-                if len(line) < 2 or line[1] not in ("data.", "text."):
-                    invalid_type = line[1] if len(line) > 1 else "Lipsă"
-                    raise ValueError(f"Tipul de secțiune de memorie invalid, introdus: {invalid_type}")
-                
-                section_type = line[1]
-                
-                # Validăm deschiderea acoladei (poate fi pe aceeași linie: section data. {)
-                if "{" not in line:
-                    raise ValueError("Se așteaptă introducerea simbolului -> {")
-                continue
-                
-            # Dacă nu este nici label, nici secțiune, adăugăm linia de cod mașină pur
-            New_Tokens.append(line)
-            
-        else:
-            # 3. Suntem în interiorul unei secțiuni (procesare variabile/array-uri)
-            
-            # Dacă linia conține închiderea secțiunii, ieșim din modul secțiune
-            if "}" in line:
-                in_section = False
-                continue
-                
-            # Validăm că avem o structură completă de linie (tip nume valoare/dimensiune)
-            if len(line) < 3:
-                raise ValueError(f"Linie de definiție variabilă invalidă sau incompletă la linia {current_index}: {line}")
-                
-            var_type = line[0]         # "var" sau "arr"
-            var_name = line[1]         # Numele variabilei
-            var_size_value = line[2]   # Valoarea sau dimensiunea ei
-            
-            if var_type == "var":
-                Variabile["var"][var_name] = {
-                    "dimension": 1,
-                    "value": var_size_value
-                }
-            elif var_type == "arr":
-                Variabile["arr"][var_name] = {
-                    "dimension": var_size_value,
-                    "value": 0
-                }
-            else:
-                raise ValueError(f"Tipul de variabilă invalid la linia {current_index} -> {var_type}")
-
-    return New_Tokens
-
-    
+import os , Setings 
+import Preprocesare_cod as PreCod
 
 
 
@@ -333,21 +137,21 @@ def Procesare_Expansiuni(Lines: list):
     print(All_expansion)
 
 
-
+#========FORNT_END=============
 #Citim prima data fisierul 
-Source_Code = ReadFile("CODE.src")
-
+Source_Code = PreCod.ReadFile(r"C:\Users\goguj\Desktop\VM\Compiler\PythonCompiler\CODE.src")
 #Preprocesam codul sursa 
-Preprocesed_Source_Code = Preprocesare(Source_Code)
-
+Preprocesed_Source_Code = PreCod.Preprocesare(Source_Code)
 #Tokwnizam codul preprocesat 
-Tokens = Tokenizare(Preprocesed_Source_Code )
-
+Tokens = PreCod.Tokenizare(Preprocesed_Source_Code )
 #Afisam fiecare stagiu 
 print(f"Codul sursa : \n{Source_Code} \n\nCodul Preprocesat: \n {Preprocesed_Source_Code}  \n\nTokens: {Tokens} ")
 
+
+#======BACK_END==============
+
 #Afisam toate labelurile 
-Tokens = Procesare_labels_and_vars(Tokens)
+Tokens = PreCod.Procesare_labels_and_vars(Tokens)
 
 #Afisam codul preprocesat asa cum apare in source_code 
 print()
@@ -356,5 +160,5 @@ for line in Tokens:
         print(t , end= " ")
     print()
 
-print(f"Variabile : \n{Variabile}")
+print(f"Variabile : \n{Setings.Variabile}")
 #Procesare_Expansiuni(Tokens)

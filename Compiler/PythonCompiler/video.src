@@ -1,8 +1,0 @@
-#define Target 10000 
-#include"Tren.src"
-_Video:
-    set R3 20 
-    set R2 10 
-    add R3 R3 
-    mov R1 R3 
-    call _default

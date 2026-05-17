@@ -1,7 +1,0 @@
-#define Tren 10304
-#include"CODE.src"
-
-_default: 
-    load R0 Tren
-    load R1 [Tren + 1]
-    ret
