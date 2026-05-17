@@ -20,10 +20,8 @@ end:
     sto R10 R1
     halt
 
-text. {
-    set R0 11203123
-    set R12 12234
-    load r11 R12
-    load R0 [arry * 5 - offset]
-
+section data. {
+    var my_var 20 
+    arr tab 20 
+    var a 10 
 }
