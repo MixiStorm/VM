@@ -26,6 +26,27 @@ def Calculate_Vars_addr():
 
     Setings.CURENT_ADDR = adresa_curenta
 
+#Dupa calcularea adreselor de variabile urmatorul pas logic este inlocuirea in program a numelor acelor variabile cu adresele in sine 
+def Resolve_Var_Addr(Lines: list) -> list:
+    Procesed_code = []
+    #mai intai trebuie sa parcurgem lista 
+    for line in Lines:
+        ln = []
+        for token in line:
+            #Acum luam token cu token , daca gasim un nume de variabila sau arr , le vom inlocui cu adresele lor corespunzatoare 
+            if token in Setings.Variabile['var']: 
+                ln.append(Setings.Variabile['var'][token]['addr'])
+
+            elif token in Setings.Variabile['arr']:
+                ln.append(Setings.Variabile['arr'][token]['addr'])
+            
+            else:
+                ln.append(token)
+
+        Procesed_code.append(ln)
+
+    return Procesed_code
+
 def ReadFile(File_name: str):
     global Source_File_Name
     #VOm incepe prima data prin a citi fisierul sursa 
@@ -44,15 +65,11 @@ def ReadFile(File_name: str):
     return Content
 
 def Preprocesare(Lines : list):
-    global Source_File_Name
-    global dir_include
-    global dir_define
-    #Vom face doua treceri , una care detecteaza defineurile si includurile si cealalta trecere pentru inlocuirea definerilor sau integrarea codului nou introdus 
-    
+    #Vom face doua treceri , una care detecteaza defineurile si includurile si cealalta trecere pentru inlocuirea definerilor sau integrarea codului nou introdus s
     New_Source_Code = []
     Source_code = []
 
-    dir_include.append(Source_File_Name)
+    Setings.dir_include.append(Source_File_Name)
 
     for i , line in enumerate(Lines):
         #eliminam liniile goale din lista 
@@ -68,7 +85,7 @@ def Preprocesare(Lines : list):
         
             nume = new_line[0]
             value = new_line[1]
-            dir_define[nume] = value
+            Setings.dir_define[nume] = value
         
             continue
 
@@ -76,11 +93,11 @@ def Preprocesare(Lines : list):
         if line.startswith("#include"):
             #Daca exista o includere atunci obtinem numele acesteia , citim fisierul sursa si repetam procesul recursiv pana includem toate librariile necesare 
             include_name = line[len("#include"):].replace('"' , "").split()[0]
-            if len(dir_include) != 0 :
-                if include_name in dir_include:
+            if len(Setings.dir_include) != 0 :
+                if include_name in Setings.dir_include:
                     continue
                 else:
-                    dir_include.append(include_name)
+                    Setings.dir_include.append(include_name)
 
             New_SRC = ReadFile(include_name)
             New_Source_Code += Preprocesare(New_SRC)
@@ -94,13 +111,13 @@ def Preprocesare(Lines : list):
 
 #FUnctia de tokenizare , aceasta functie va separa fiecare linie in tokenuri diferite 
 def Tokenizare(Lines : list ):
-    global dir_define
+
     All_Tokens = []
     delimitatori = "{}[]()+=-*/," #Delimitatori pe care ii vom folosi pentru a separa tokenurile 
 
     def AddToken(token:str):
-        if token in dir_define:
-            token = dir_define[token]
+        if token in Setings.dir_define:
+            token = Setings.dir_define[token]
         
         if len(token) != 0 : 
             Line_Tokens.append(token)
@@ -154,7 +171,7 @@ def Procesare_labels_and_vars(Lines: list):
             # Verificăm dacă primul token conține caracterul ":" la sfârșit
             if line[0].endswith(":"):
                 label_name = line[0][:-1]
-                LabelsDict[label_name] = len(New_Tokens) # Folosește lungimea curentă din New_Tokens, nu indexul brut!
+                Setings.LabelsDict[label_name] = len(New_Tokens) # Folosește lungimea curentă din New_Tokens, nu indexul brut!
                 continue
             
             # 2. Detectarea intrării într-o secțiune (ex: "section data. {")
@@ -193,12 +210,12 @@ def Procesare_labels_and_vars(Lines: list):
             var_size_value = line[2]   # Valoarea sau dimensiunea ei
             
             if var_type == "var":
-                Variabile["var"][var_name] = {
+                Setings.Variabile["var"][var_name] = {
                     "dimension": 1,
                     "value": var_size_value
                 }
             elif var_type == "arr":
-                Variabile["arr"][var_name] = {
+                Setings.Variabile["arr"][var_name] = {
                     "dimension": var_size_value,
                     "value": 0
                 }
@@ -206,6 +223,7 @@ def Procesare_labels_and_vars(Lines: list):
                 raise ValueError(f"Tipul de variabilă invalid la linia {current_index} -> {var_type}")
     #La final vom calcula adresele variabilelor 
     Calculate_Vars_addr()
+    New_Tokens = Resolve_Var_Addr(New_Tokens)
 
     return New_Tokens
 
