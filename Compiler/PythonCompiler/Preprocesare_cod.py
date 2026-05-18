@@ -35,10 +35,10 @@ def Resolve_Var_Addr(Lines: list) -> list:
         for token in line:
             #Acum luam token cu token , daca gasim un nume de variabila sau arr , le vom inlocui cu adresele lor corespunzatoare 
             if token in Setings.Variabile['var']: 
-                ln.append(Setings.Variabile['var'][token]['addr'])
+                ln.append(str(Setings.Variabile['var'][token]['addr']))
 
             elif token in Setings.Variabile['arr']:
-                ln.append(Setings.Variabile['arr'][token]['addr'])
+                ln.append(str(Setings.Variabile['arr'][token]['addr']))
             
             else:
                 ln.append(token)
