@@ -31,10 +31,10 @@ void CPU::DECODER(uint64_t & instructiune){
 //Functia doar va decoada instrucitunea si va apela functiile necesare/modulele necesare pentru a executa instructiune 
         
         uint8_t opcode = static_cast<uint8_t>(instructiune & 0xFF); // Obtinem OpCodul din instructiune 
-		uint8_t rx_1 = static_cast<uint8_t>((instructiune >> 8  ) & 0x0F); // Obtinem primul registru 
-		uint8_t rx_2 = static_cast<uint8_t>((instructiune >> 12 ) & 0x0F); // Obtinem al doilea registru 
-		uint8_t rx_3 = static_cast<uint8_t>((instructiune >> 16 ) & 0x0F); // Obtinem al treilea registru
-		uint64_t imm = static_cast<uint64_t>(instructiune >> 20 ); // Obtinem datele/ adresele 
+		this->rx_1 = static_cast<uint8_t>((instructiune >> 8  ) & 0x0F); // Obtinem primul registru 
+		this->rx_2 = static_cast<uint8_t>((instructiune >> 12 ) & 0x0F); // Obtinem al doilea registru 
+		this->rx_3 = static_cast<uint8_t>((instructiune >> 16 ) & 0x0F); // Obtinem al treilea registru
+        this->imm = static_cast<uint64_t>(instructiune >> 20 ); // Obtinem datele/ adresele 
         this->JUMP = false;
 
 
@@ -47,53 +47,53 @@ void CPU::DECODER(uint64_t & instructiune){
         switch(static_cast<VM::OpCode>(opcode)){
 
             case VM::OpCode::Add:
-                if(!imm)
-                    Registri[rx_1] = Unitatea_Logica_Aritmetica.add(Registri[rx_1] ,Registri[rx_2] );
+                if(!this->imm)
+                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.add(Registri[this->rx_1] ,Registri[this->rx_2] );
                 else
-                    Registri[rx_1] =  Unitatea_Logica_Aritmetica.add(Registri[rx_1] , imm );
+                    Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.add(Registri[this->rx_1] , this->imm );
                 break;
 
             case VM::OpCode::SET:
-				Registri[rx_1] = imm;
+				Registri[this->rx_1] = this->imm;
 				break;
 
             case VM::OpCode::SUB:
-                if(!imm)
-                    Registri[rx_1] = Unitatea_Logica_Aritmetica.sub(Registri[rx_1] ,Registri[rx_2] );
+                if(!this->imm)
+                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] ,Registri[this->rx_2] );
                 else
-                    Registri[rx_1] =  Unitatea_Logica_Aritmetica.sub(Registri[rx_1] , imm );
+                    Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] , this->imm );
                 break;
             
             case VM::OpCode::MUL:
-                if(!imm)
-                    Registri[rx_1] = Unitatea_Logica_Aritmetica.mul(Registri[rx_1] ,Registri[rx_2] );
+                if(!this->imm)
+                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.mul(Registri[this->rx_1] ,Registri[this->rx_2] );
                 else
-                    Registri[rx_1] =  Unitatea_Logica_Aritmetica.mul(Registri[rx_1] , imm );
+                    Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.mul(Registri[this->rx_1] , this->imm );
                 break;
 
             case VM::OpCode::DIV:
-                if(!imm)
-                    Registri[rx_1] = Unitatea_Logica_Aritmetica.div(Registri[rx_1] ,Registri[rx_2] );
+                if(!this->imm)
+                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.div(Registri[this->rx_1] ,Registri[this->rx_2] );
                 else
-                    Registri[rx_1] =  Unitatea_Logica_Aritmetica.div(Registri[rx_1] , imm );
+                    Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.div(Registri[this->rx_1] , this->imm );
                 break;
 
             case VM::OpCode::MOV:
-				Registri[rx_1] = Registri[rx_2];
+				Registri[this->rx_1] = Registri[this->rx_2];
 				break;
 
             case VM::OpCode::CMP:
-                if(!imm)
-                    Unitatea_Logica_Aritmetica.sub(Registri[rx_1] ,Registri[rx_2]);
+                if(!this->imm)
+                    Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] ,Registri[this->rx_2]);
                 else
-                    Unitatea_Logica_Aritmetica.sub(Registri[rx_1] , imm);
+                    Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] , this->imm);
                 break;
             
             case VM::OpCode::STORE:
-                if(!imm)
-                    Memorie->Write_Memory(Registri[rx_1] , Registri[rx_2]);
+                if(!this->imm)
+                    Memorie->Write_Memory(Registri[this->rx_1] , Registri[this->rx_2]);
                 else
-                    Memorie->Write_Memory(Registri[rx_1] , imm);
+                    Memorie->Write_Memory(Registri[this->rx_1] , this->imm);
                 break;
             
             case VM::OpCode::HALT:
@@ -101,19 +101,19 @@ void CPU::DECODER(uint64_t & instructiune){
                 break;
 
             case VM::OpCode::JMP:
-                if(!imm)
-                    Registri[VM::REG_PC] = Registri[rx_1];
+                if(!this->imm)
+                    Registri[VM::REG_PC] = Registri[this->rx_1];
                 else
-                    Registri[VM::REG_PC] = imm;
+                    Registri[VM::REG_PC] = this->imm;
                 this->JUMP = true;
                 break;
 
             case VM::OpCode::JML:
                 if(CPU_FLAG == - 1){
-                    if(!imm)
-                        Registri[VM::REG_PC] = Registri[rx_1];
+                    if(!this->imm)
+                        Registri[VM::REG_PC] = Registri[this->rx_1];
                     else
-                        Registri[VM::REG_PC] = imm;
+                        Registri[VM::REG_PC] = this->imm;
                     this->JUMP = true;
                 }
                 break;
@@ -121,36 +121,36 @@ void CPU::DECODER(uint64_t & instructiune){
             
             case VM::OpCode::JMM:
                 if(CPU_FLAG == 1){
-                    if(!imm)
-                        Registri[VM::REG_PC] = Registri[rx_1];
+                    if(!this->imm)
+                        Registri[VM::REG_PC] = Registri[this->rx_1];
                     else
-                        Registri[VM::REG_PC] = imm;
+                        Registri[VM::REG_PC] = this->imm;
                     this->JUMP = true;
                 }
                 break;
 
             case VM::OpCode::JMQ:
                 if(CPU_FLAG == 0){
-                    if(!imm)
-                        Registri[VM::REG_PC] = Registri[rx_1];
+                    if(!this->imm)
+                        Registri[VM::REG_PC] = Registri[this->rx_1];
                     else
-                        Registri[VM::REG_PC] = imm;
+                        Registri[VM::REG_PC] = this->imm;
                     this->JUMP = true;
                 }
                 break;
 
             case VM::OpCode::PUSH:
 				Registri[VM::REG_SP] ++;
-				if(!imm){
-					Memorie->Write_Memory(Registri[VM::REG_SP] , Registri[rx_1] );
+				if(!this->imm){
+					Memorie->Write_Memory(Registri[VM::REG_SP] , Registri[this->rx_1] );
                     break;
 				}
-                Memorie->Write_Memory(Registri[VM::REG_SP] , imm );
+                Memorie->Write_Memory(Registri[VM::REG_SP] , this->imm );
 				break;
 
 			case VM::OpCode::POP:
-				if(imm){
-					Registri[rx_1] = Memorie->Read_Memory( Registri[VM::REG_SP]);
+				if(this->imm){
+					Registri[this->rx_1] = Memorie->Read_Memory( Registri[VM::REG_SP]);
 				}
 
                 Registri[VM::REG_SP] --;
@@ -160,25 +160,25 @@ void CPU::DECODER(uint64_t & instructiune){
                 break;
             
             case VM::OpCode::LOAD:
-                if(!imm){
-                    Registri[rx_1] = Memorie->Read_Memory(Registri[rx_2]);
+                if(!this->imm){
+                    Registri[this->rx_1] = Memorie->Read_Memory(Registri[this->rx_2]);
                 }
                 else
-                    Registri[rx_1] = Memorie->Read_Memory(imm);
+                    Registri[this->rx_1] = Memorie->Read_Memory(this->imm);
                 break;
 
             case VM::OpCode::ROM_Read:
 				{
 				    int j = 0;
-                    std::cout<<"Vom scrie din ROM de la adresa : "<<Registri[rx_1]
-                    <<" pana la adresa : "<<Registri[rx_2]<<" in RAM de la adresa : "<<Registri[rx_3]<<std::endl;
+                    std::cout<<"Vom scrie din ROM de la adresa : "<<Registri[this->rx_1]
+                    <<" pana la adresa : "<<Registri[this->rx_2]<<" in RAM de la adresa : "<<Registri[this->rx_3]<<std::endl;
                     
-                    for(size_t i = Registri[rx_1] ; i <= Registri[rx_2] ; i++){
+                    for(size_t i = Registri[this->rx_1] ; i <= Registri[this->rx_2] ; i++){
                     
                         size_t adresa = i;
                         uint64_t data = Memorie->Read_Memory(adresa);
                     
-                        Memorie->Write_Memory(Registri[rx_3] + j , Memorie->Read_Memory(adresa));
+                        Memorie->Write_Memory(Registri[this->rx_3] + j , Memorie->Read_Memory(adresa));
 				    	j++;
 				    }
                     Memorie->PrintMemory();
@@ -188,8 +188,8 @@ void CPU::DECODER(uint64_t & instructiune){
 			case VM::OpCode::ROM_Write:
 				{
 				int j = 0 ;
-				for(size_t i = Registri[rx_1] ; i <= Registri[rx_2] ; i++){
-                    int addresa = Registri[rx_3] + j + VM::RAM_SIZE;
+				for(size_t i = Registri[this->rx_1] ; i <= Registri[this->rx_2] ; i++){
+                    int addresa = Registri[this->rx_3] + j + VM::RAM_SIZE;
 				    Memorie->Write_Memory( addresa ,  Memorie->Read_Memory(i));
 					j++;
 				}
@@ -197,43 +197,43 @@ void CPU::DECODER(uint64_t & instructiune){
 				break;
             
             case VM::OpCode::INC:
-                if(!imm){
-                    Registri[rx_1] = Unitatea_Logica_Aritmetica.inc(Registri[rx_1]);
+                if(!this->imm){
+                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.inc(Registri[this->rx_1]);
                 }
                 else
-                    Registri[rx_1] = Unitatea_Logica_Aritmetica.inc(imm);
+                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.inc(this->imm);
                 break;
 
             case VM::OpCode::DEC:
-                if(!imm){
-                    Registri[rx_1] = Unitatea_Logica_Aritmetica.dec(Registri[rx_1]);
+                if(!this->imm){
+                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.dec(Registri[this->rx_1]);
                 }
                 else
-                    Registri[rx_1] = Unitatea_Logica_Aritmetica.dec(imm);
+                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.dec(this->imm);
                 break;
             
             case VM::OpCode::XOR:
-                Registri[rx_1] = Unitatea_Logica_Aritmetica.XOR(Registri[rx_2] , Registri[rx_2]);
+                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.XOR(Registri[this->rx_2] , Registri[this->rx_2]);
                 break;
                 
             case VM::OpCode::OR:
-                Registri[rx_1] = Unitatea_Logica_Aritmetica.OR(Registri[rx_2] , Registri[rx_2]);
+                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.OR(Registri[this->rx_2] , Registri[this->rx_2]);
                 break;
 
             case VM::OpCode::AND:
-                Registri[rx_1] = Unitatea_Logica_Aritmetica.AND(Registri[rx_2] , Registri[rx_2]);
+                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.AND(Registri[this->rx_2] , Registri[this->rx_2]);
                 break;
 
             case VM::OpCode::NOT:
-                Registri[rx_1] = Unitatea_Logica_Aritmetica.NOT(Registri[rx_2]);
+                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.NOT(Registri[this->rx_2]);
                 break;
             
             case VM::OpCode::SHL:
-                Registri[rx_1] = Unitatea_Logica_Aritmetica.SHL(Registri[rx_2] , Registri[rx_2]);
+                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHL(Registri[this->rx_2] , Registri[this->rx_2]);
                 break;
 
             case VM::OpCode::SHR:
-                Registri[rx_1] = Unitatea_Logica_Aritmetica.SHR(Registri[rx_2] , Registri[rx_2]);
+                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHR(Registri[this->rx_2] , Registri[this->rx_2]);
                 break;
 
             case VM::OpCode::CALL:
@@ -241,10 +241,10 @@ void CPU::DECODER(uint64_t & instructiune){
 
                 Registri[VM::REG_SP]++;
                 Memorie->Write_Memory(Registri[VM::REG_SP] ,Registri[VM::REG_PC] + 1  );
-                if(!imm)    
-                    Registri[VM::REG_PC] = Registri[rx_1];
+                if(!this->imm)    
+                    Registri[VM::REG_PC] = Registri[this->rx_1];
                 else
-                    Registri[VM::REG_PC] = imm;
+                    Registri[VM::REG_PC] = this->imm;
                 
                 break;
             case VM::OpCode::RET:
@@ -255,7 +255,7 @@ void CPU::DECODER(uint64_t & instructiune){
                 break;
                 
             case VM::OpCode::MEM_LOCK:
-                Memorie->SetLockedMemory(Registri[rx_1] , Registri[rx_2]);
+                Memorie->SetLockedMemory(Registri[this->rx_1] , Registri[this->rx_2]);
                 break;
             }   
 

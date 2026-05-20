@@ -55,64 +55,70 @@ private:
     Aici se vor afla functiile pentru fiecare instructiune inparte 
 
     Important !!!!
-        Daca imm != 0 atunci vom performa calculele folosind imm , ignorand 
-        ori ce alt registru specificat cu exceptia registrului principal , RX1
+        Daca this->imm != 0 atunci vom performa calculele folosind this->imm , ignorand 
+        ori ce alt registru specificat cu exceptia registrului principal , rx_1
 */
+//Variabile care vor tine loc la parametri pentru performanta 
+uint8_t rx_1 = 0;
+uint8_t rx_2 = 0;
+uint8_t rx_3 = 0;
+uint64_t imm = 0;
 
-void OP_ADD(uint64_t rx1 , uint64_t rx2 , uint64_t imm ){
-    if (imm)
-        Registri[rx1] = Unitatea_Logica_Aritmetica.add(Registri[rx1 ] , imm);
+
+void OP_ADD(){
+    if (this->imm)
+        Registri[this->rx_1] = Unitatea_Logica_Aritmetica.add(Registri[this->rx_1 ] , this->imm);
     else
-        Registri[rx1] = Unitatea_Logica_Aritmetica.add(Registri[rx1 ] , Registri[rx2]);
+        Registri[this->rx_1] = Unitatea_Logica_Aritmetica.add(Registri[this->rx_1 ] , Registri[this->rx_2]);
 }
-void OP_SET(uint64_t rx1 , uint64_t imm){
-    Registri[rx1] = imm;
+void OP_SET(){
+    Registri[this->rx_1] = this->imm;
 }
 
-void OP_SUB(uint64_t rx1 , uint64_t rx2 , uint64_t imm ){
-    if(!imm)
-        Registri[rx1] = Unitatea_Logica_Aritmetica.sub(Registri[rx1] ,Registri[rx2] );
+void OP_SUB(){
+    if(!this->imm)
+        Registri[this->rx_1] = Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] ,Registri[this->rx_2] );
     else
-        Registri[rx1] =  Unitatea_Logica_Aritmetica.sub(Registri[rx1] , imm );
+        Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] , this->imm );
 }
 
-void OP_MUL(uint64_t rx1 , uint64_t rx2 , uint64_t imm ){
-     if(!imm)
-            Registri[rx1] = Unitatea_Logica_Aritmetica.mul(Registri[rx1] ,Registri[rx2] );
+void OP_MUL( ){
+     if(!this->imm)
+            Registri[this->rx_1] = Unitatea_Logica_Aritmetica.mul(Registri[this->rx_1] ,Registri[this->rx_2] );
         else
-            Registri[rx1] =  Unitatea_Logica_Aritmetica.mul(Registri[rx1] , imm );
+            Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.mul(Registri[this->rx_1] , this->imm );
 }
-void OP_DIV(uint64_t rx_1 , uint64_t rx_2 , uint64_t imm){
-    if(!imm)
-        Registri[rx_1] = Unitatea_Logica_Aritmetica.div(Registri[rx_1] ,Registri[rx_2] );
+void OP_DIV(){
+    if(!this->imm)
+        Registri[this->rx_1] = Unitatea_Logica_Aritmetica.div(Registri[this->rx_1] ,Registri[this->rx_2] );
     else
-        Registri[rx_1] =  Unitatea_Logica_Aritmetica.div(Registri[rx_1] , imm );
+        Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.div(Registri[this->rx_1] , this->imm );
 }
-void OP_MOV(uint64_t rx_1 , uint64_t rx_2){
-    Registri[rx_1] = Registri[rx_2];
+void OP_MOV(){
+    Registri[this->rx_1] = Registri[this->rx_2];
 }
-void OP_CMP(uint64_t rx_1 , uint64_t rx_2 , uint64_t imm){
-    if(!imm)
-            Unitatea_Logica_Aritmetica.sub(Registri[rx_1] ,Registri[rx_2]);
+void OP_CMP(){
+    if(!this->imm)
+            Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] ,Registri[this->rx_2]);
         else
-            Unitatea_Logica_Aritmetica.sub(Registri[rx_1] , imm);
+            Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] , this->imm);
 }
-void OP_STORE(uint64_t rx_1 , uint64_t rx_2 , uint64_t imm){
-    if(!imm)
-            Memorie->Write_Memory(Registri[rx_1] , Registri[rx_2]);
+void OP_STORE(){
+    if(!this->imm)
+            Memorie->Write_Memory(Registri[this->rx_1] , Registri[this->rx_2]);
         else
-            Memorie->Write_Memory(Registri[rx_1] , imm);
+            Memorie->Write_Memory(Registri[this->rx_1] , this->imm);
 }
 
 void OP_HALT(){
     this->RUNING = false;
 }
 
-void OP_JMP(uint64_t rx_1 , uint64_t imm){
-     if(!imm)
-            Registri[VM::REG_PC] = Registri[rx_1];
+void OP_JMP( ){
+     if(!this->imm)
+            Registri[VM::REG_PC] = Registri[this->rx_1];
         else
-            Registri[VM::REG_PC] = imm;
+            Registri[VM::REG_PC] = this->imm;
         this->JUMP = true;
 }
 };

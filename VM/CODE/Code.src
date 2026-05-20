@@ -3,17 +3,9 @@
 
 _start:
     set R0 255
-    set R10 0
-    set R11 0
-
-add:
-    add R11 N
-    push R11
-    cmp R11 Total
-    jmq end
-    jmp add
+    set R10 1000
+    jmp end
 
 end:
-    load R12 [SP - 1]
-    sto R10 R1
+    sto R10 R0
     halt
