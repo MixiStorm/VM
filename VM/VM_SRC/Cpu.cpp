@@ -81,8 +81,9 @@ void CPU::DECODER(uint64_t & instructiune){
             std::this_thread::sleep_for(std::chrono::seconds(5));
 			exit(100);
 		}
-        
-            (this->*OP_TABLE[opcode])();
+        //printf("Instructiune : 0x%016llx   | PC : %ld  | SP : %ld \n " , instructiune , Registri[VM::REG_PC] ,  Registri[VM::REG_SP]);
+
+        (this->*OP_TABLE[opcode])();
      
         if(!this->JUMP)
             Registri[VM::REG_PC]++;

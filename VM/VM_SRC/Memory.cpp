@@ -80,7 +80,7 @@ void Memory::Write_Memory(uint64_t addres , uint64_t data){
     if(!this->LockedMem.empty())
     {
         for(size_t i = 0 ; i < this->LockedMem.size() ; i++){
-            if(addres >= LockedMem[i].start && addres <= LockedMem[i].end)
+            if(addres >= LockedMem[i].start && addres < LockedMem[i].end)
             {
                 std::cout<<"[ERROR] Trying to write to an invalid adres space : "<<addres<<" core dumped"<<std::endl;
                 std::this_thread::sleep_for(std::chrono::seconds(5));
@@ -109,7 +109,7 @@ void Memory::SetLockedMemory(uint64_t adr_start , uint64_t adr_end){
 
 //===================Functi-DEBUG==============================
 void Memory::PrintMemory(){
-    return;
+    
     printf("Ram : \n");
     for(size_t i = 0 ; i < VM::RAM_SIZE ; i++){
         if(RAM[i] != 0)

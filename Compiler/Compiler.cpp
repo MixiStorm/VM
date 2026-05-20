@@ -233,6 +233,8 @@ std::vector<Procesed_Line> FirstPass(std::vector<std::string> RD , bool Procesar
         size_t label_poz = line.find(":");
         if(label_poz != std::string::npos){
             std::string label_name = line.substr(0 , label_poz);
+            label_name.erase(0, label_name.find_first_not_of(" \t\r\n"));
+            label_name.erase(label_name.find_last_not_of(" \t\r\n") + 1);
 
             Labels[label_name] = curent_address;
             continue;
@@ -432,6 +434,11 @@ int main(){
     }
 
     std::cout<<"Programul a fost compilat , numar total de instructiuni : "<<Binar.size()<<std::endl;
+
+    std::cout<<"Vom afisa tabela cu labeluri sub forma : NAME:  | VALUE: "<<std::endl;
+    for(auto [key , value] : Labels){
+        std::cout<<"NAME: "<<key<<"  |  VALUE: "<<value<<std::endl;
+    }
     
 
 }

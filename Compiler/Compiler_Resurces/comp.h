@@ -231,12 +231,13 @@ std::vector<uint64_t> ToBin(std::vector<Procesed_Line> &  Source){
             uint8_t Opcode = OPCODES[PL.memnonic];
             
             Bucati_instructiune[0] = Opcode;
-            
+            /*
             size_t Dim_args = PL.args.size();
             if(static_cast<size_t>(OpcodeArgsType[PL.memnonic]) != Dim_args){
                 std::cerr<<"La linia : "<<PL.original_line<<"  s-au introdus mai multe sau mai putine argumente de cat suporta o asemenea instructiune "<<std::endl;
                 exit(0xDEAD);
             }
+            
             //Verificam daca primul argument este un registru , deoarece doar instructiunile de jump nu asteapta tot timpul un registru 
             if(PL.args.size() > 0)
                 if(!REGISTRI.count(PL.args[0] ) && OpcodeArgsType[PL.memnonic] != VM::ARG_PATTERN::NONE ){
@@ -247,6 +248,7 @@ std::vector<uint64_t> ToBin(std::vector<Procesed_Line> &  Source){
                     }    
                     
                 }
+            */
             #define imm 4
             //Parcurgem argumentele 
             for(size_t i = 0 ; i < PL.args.size() ; i++){
