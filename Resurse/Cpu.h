@@ -120,6 +120,140 @@ void OP_JMP( ){
         else
             Registri[VM::REG_PC] = this->imm;
         this->JUMP = true;
+    }
+void OP_JML(){
+   if(CPU_FLAG == - 1){
+        if(!this->imm)
+            Registri[VM::REG_PC] = Registri[this->rx_1];
+        else
+            Registri[VM::REG_PC] = this->imm;
+        this->JUMP = true;
+    }
 }
+void OP_JMM(){
+    if(this->CPU_FLAG == 1){
+        if(!this->imm)
+            Registri[VM::REG_PC] = Registri[this->rx_1];
+        else
+            Registri[VM::REG_PC] = this->imm;
+        this->JUMP = true;
+    }
+}
+void OP_JMQ(){
+    if(this->CPU_FLAG == 0){
+        if(!this->imm)
+            Registri[VM::REG_PC] = Registri[this->rx_1];
+        else
+            Registri[VM::REG_PC] = this->imm;
+        this->JUMP = true;
+    }
+}
+
+void OP_PUSH(){
+    Registri[VM::REG_SP] ++;
+	if(!this->imm)
+		Memorie->Write_Memory(Registri[VM::REG_SP] , Registri[this->rx_1] ); 
+    else
+        Memorie->Write_Memory(Registri[VM::REG_SP] , this->imm );
+}
+
+void OP_POP(){
+    if(this->imm)
+	    Registri[this->rx_1] = Memorie->Read_Memory( Registri[VM::REG_SP]);
+	
+    Registri[VM::REG_SP] --;
+}
+void OP_NOP(){
+    return;
+}
+
+void OP_LOAD(){
+    if(!this->imm)
+        Registri[this->rx_1] = Memorie->Read_Memory(Registri[this->rx_2]);
+    else
+        Registri[this->rx_1] = Memorie->Read_Memory(this->imm);
+}
+
+void OP_ROM_READ(){
+    int j = 0;
+    std::cout<<"Vom scrie din ROM de la adresa : "<<Registri[this->rx_1]
+    <<" pana la adresa : "<<Registri[this->rx_2]<<" in RAM de la adresa : "<<Registri[this->rx_3]<<std::endl;
+    
+    for(size_t i = Registri[this->rx_1] ; i <= Registri[this->rx_2] ; i++){
+    
+        size_t adresa = i;
+        uint64_t data = Memorie->Read_Memory(adresa);
+    
+        Memorie->Write_Memory(Registri[this->rx_3] + j , Memorie->Read_Memory(adresa));
+		j++;
+	}
+    Memorie->PrintMemory();
+}
+
+void OP_ROM_WRITE(){
+    int j = 0 ;
+	for(size_t i = Registri[this->rx_1] ; i <= Registri[this->rx_2] ; i++){
+        int addresa = Registri[this->rx_3] + j + VM::RAM_SIZE;
+	    Memorie->Write_Memory( addresa ,  Memorie->Read_Memory(i));
+		j++;
+	}
+}
+
+void OP_INC(){
+    if(!this->imm)
+        Registri[this->rx_1] = Unitatea_Logica_Aritmetica.inc(Registri[this->rx_1]);
+    else
+        Registri[this->rx_1] = Unitatea_Logica_Aritmetica.inc(this->imm);
+}
+
+void OP_DEC(){
+    if(!this->imm)
+        Registri[this->rx_1] = Unitatea_Logica_Aritmetica.dec(Registri[this->rx_1]);
+    else
+        Registri[this->rx_1] = Unitatea_Logica_Aritmetica.dec(this->imm);
+}
+
+ void OP_XOR(){
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.XOR(Registri[this->rx_2] , Registri[this->rx_2]);
+}            
+void OP_OR(){
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.OR(Registri[this->rx_2] , Registri[this->rx_2]);
+}
+void OP_AND(){
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.AND(Registri[this->rx_2] , Registri[this->rx_2]);
+}
+void OP_NOT(){
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.NOT(Registri[this->rx_2]);
+}
+void OP_SHL(){
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHL(Registri[this->rx_2] , Registri[this->rx_2]);
+}
+void OP_SHR(){
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHR(Registri[this->rx_2] , Registri[this->rx_2]);
+}
+void OP_CALL(){
+    this->JUMP = true; //Important  ca sa nu marim automat program counterul 
+    Registri[VM::REG_SP]++;
+    Memorie->Write_Memory(Registri[VM::REG_SP] ,Registri[VM::REG_PC] + 1  );
+    if(!this->imm)    
+        Registri[VM::REG_PC] = Registri[this->rx_1];
+    else
+        Registri[VM::REG_PC] = this->imm;
+}
+void OP_RET(){
+    this->JUMP = true; //Important  ca sa nu marim automat program counterul 
+    Registri[VM::REG_PC] = Memorie->Read_Memory(Registri[VM::REG_SP]);
+    Registri[VM::REG_SP]--;
+}            
+void OP_MEM_LOCK(){
+                Memorie->SetLockedMemory(Registri[this->rx_1] , Registri[this->rx_2]);
+}   
+
+private:
+//Lista cu functi 
+using OpHandler = void(CPU::*)();
+static const OpHandler OP_TABLE[256];
+
 };
+
 

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
-
 project(VM_app)
+
+# Sau explicit pentru toate target-urile
+add_compile_options(-O3 -march=native -mtune=native)
 
 #Adaugam Raylib 
 add_subdirectory(raylib)

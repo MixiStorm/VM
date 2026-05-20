@@ -4,6 +4,44 @@ CPU::CPU(Memory* mem , Intrerupere* INT): Memorie(mem) ,SysIntreruperi(INT)   , 
     Unitatea_Logica_Aritmetica(&Registri , &CPU_FLAG) {}
 
 CPU::~CPU(){}
+//Adaugam functiile pentru instructiuni 
+
+// Cpu.cpp - după definiția funcțiilor
+const CPU::OpHandler CPU::OP_TABLE[256] = {
+    nullptr,                     // 0x00
+    &CPU::OP_ADD,                // 0x01
+    &CPU::OP_SUB,                // 0x02
+    &CPU::OP_CMP,                // 0x03
+    &CPU::OP_SET,                // 0x04
+    &CPU::OP_LOAD,               // 0x05
+    &CPU::OP_STORE,              // 0x06
+    &CPU::OP_HALT,               // 0x07
+    &CPU::OP_ROM_READ,           // 0x08
+    &CPU::OP_ROM_WRITE,          // 0x09
+    &CPU::OP_MOV,                // 0x0A
+    &CPU::OP_PUSH,               // 0x0B
+    &CPU::OP_POP,                // 0x0C
+    &CPU::OP_NOP,                // 0x0D
+    nullptr,                     // 0x0E
+    &CPU::OP_JMP,                // 0x0F
+    &CPU::OP_JMQ,                // 0x10  // Dacă mai e folosit
+    &CPU::OP_JML,                // 0x11
+    &CPU::OP_JMM,                // 0x12
+    &CPU::OP_MUL,                // 0x13
+    &CPU::OP_DIV,                // 0x14
+    &CPU::OP_INC,                // 0x15
+    &CPU::OP_DEC,                // 0x16
+    &CPU::OP_XOR,                // 0x17
+    &CPU::OP_AND,                // 0x18
+    &CPU::OP_OR,                 // 0x19
+    &CPU::OP_NOT,                // 0x1A
+    &CPU::OP_SHL,                // 0x1B
+    &CPU::OP_SHR,                // 0x1C
+    &CPU::OP_CALL,               // 0x1D
+    &CPU::OP_RET,                // 0x1E
+    &CPU::OP_MEM_LOCK,           // 0x1F
+};
+
 
 void CPU::INT_RUTIN(){
     uint64_t INT_ID = SysIntreruperi->GetIntrerupere();
@@ -44,221 +82,8 @@ void CPU::DECODER(uint64_t & instructiune){
 			exit(100);
 		}
         
-        switch(static_cast<VM::OpCode>(opcode)){
-
-            case VM::OpCode::Add:
-                if(!this->imm)
-                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.add(Registri[this->rx_1] ,Registri[this->rx_2] );
-                else
-                    Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.add(Registri[this->rx_1] , this->imm );
-                break;
-
-            case VM::OpCode::SET:
-				Registri[this->rx_1] = this->imm;
-				break;
-
-            case VM::OpCode::SUB:
-                if(!this->imm)
-                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] ,Registri[this->rx_2] );
-                else
-                    Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] , this->imm );
-                break;
-            
-            case VM::OpCode::MUL:
-                if(!this->imm)
-                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.mul(Registri[this->rx_1] ,Registri[this->rx_2] );
-                else
-                    Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.mul(Registri[this->rx_1] , this->imm );
-                break;
-
-            case VM::OpCode::DIV:
-                if(!this->imm)
-                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.div(Registri[this->rx_1] ,Registri[this->rx_2] );
-                else
-                    Registri[this->rx_1] =  Unitatea_Logica_Aritmetica.div(Registri[this->rx_1] , this->imm );
-                break;
-
-            case VM::OpCode::MOV:
-				Registri[this->rx_1] = Registri[this->rx_2];
-				break;
-
-            case VM::OpCode::CMP:
-                if(!this->imm)
-                    Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] ,Registri[this->rx_2]);
-                else
-                    Unitatea_Logica_Aritmetica.sub(Registri[this->rx_1] , this->imm);
-                break;
-            
-            case VM::OpCode::STORE:
-                if(!this->imm)
-                    Memorie->Write_Memory(Registri[this->rx_1] , Registri[this->rx_2]);
-                else
-                    Memorie->Write_Memory(Registri[this->rx_1] , this->imm);
-                break;
-            
-            case VM::OpCode::HALT:
-                this->RUNING = false;
-                break;
-
-            case VM::OpCode::JMP:
-                if(!this->imm)
-                    Registri[VM::REG_PC] = Registri[this->rx_1];
-                else
-                    Registri[VM::REG_PC] = this->imm;
-                this->JUMP = true;
-                break;
-
-            case VM::OpCode::JML:
-                if(CPU_FLAG == - 1){
-                    if(!this->imm)
-                        Registri[VM::REG_PC] = Registri[this->rx_1];
-                    else
-                        Registri[VM::REG_PC] = this->imm;
-                    this->JUMP = true;
-                }
-                break;
-                    
-            
-            case VM::OpCode::JMM:
-                if(CPU_FLAG == 1){
-                    if(!this->imm)
-                        Registri[VM::REG_PC] = Registri[this->rx_1];
-                    else
-                        Registri[VM::REG_PC] = this->imm;
-                    this->JUMP = true;
-                }
-                break;
-
-            case VM::OpCode::JMQ:
-                if(CPU_FLAG == 0){
-                    if(!this->imm)
-                        Registri[VM::REG_PC] = Registri[this->rx_1];
-                    else
-                        Registri[VM::REG_PC] = this->imm;
-                    this->JUMP = true;
-                }
-                break;
-
-            case VM::OpCode::PUSH:
-				Registri[VM::REG_SP] ++;
-				if(!this->imm){
-					Memorie->Write_Memory(Registri[VM::REG_SP] , Registri[this->rx_1] );
-                    break;
-				}
-                Memorie->Write_Memory(Registri[VM::REG_SP] , this->imm );
-				break;
-
-			case VM::OpCode::POP:
-				if(this->imm){
-					Registri[this->rx_1] = Memorie->Read_Memory( Registri[VM::REG_SP]);
-				}
-
-                Registri[VM::REG_SP] --;
-                break;
-            
-            case VM::OpCode::NOP:
-                break;
-            
-            case VM::OpCode::LOAD:
-                if(!this->imm){
-                    Registri[this->rx_1] = Memorie->Read_Memory(Registri[this->rx_2]);
-                }
-                else
-                    Registri[this->rx_1] = Memorie->Read_Memory(this->imm);
-                break;
-
-            case VM::OpCode::ROM_Read:
-				{
-				    int j = 0;
-                    std::cout<<"Vom scrie din ROM de la adresa : "<<Registri[this->rx_1]
-                    <<" pana la adresa : "<<Registri[this->rx_2]<<" in RAM de la adresa : "<<Registri[this->rx_3]<<std::endl;
-                    
-                    for(size_t i = Registri[this->rx_1] ; i <= Registri[this->rx_2] ; i++){
-                    
-                        size_t adresa = i;
-                        uint64_t data = Memorie->Read_Memory(adresa);
-                    
-                        Memorie->Write_Memory(Registri[this->rx_3] + j , Memorie->Read_Memory(adresa));
-				    	j++;
-				    }
-                    Memorie->PrintMemory();
-                }
-				break;
-
-			case VM::OpCode::ROM_Write:
-				{
-				int j = 0 ;
-				for(size_t i = Registri[this->rx_1] ; i <= Registri[this->rx_2] ; i++){
-                    int addresa = Registri[this->rx_3] + j + VM::RAM_SIZE;
-				    Memorie->Write_Memory( addresa ,  Memorie->Read_Memory(i));
-					j++;
-				}
-				}
-				break;
-            
-            case VM::OpCode::INC:
-                if(!this->imm){
-                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.inc(Registri[this->rx_1]);
-                }
-                else
-                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.inc(this->imm);
-                break;
-
-            case VM::OpCode::DEC:
-                if(!this->imm){
-                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.dec(Registri[this->rx_1]);
-                }
-                else
-                    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.dec(this->imm);
-                break;
-            
-            case VM::OpCode::XOR:
-                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.XOR(Registri[this->rx_2] , Registri[this->rx_2]);
-                break;
-                
-            case VM::OpCode::OR:
-                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.OR(Registri[this->rx_2] , Registri[this->rx_2]);
-                break;
-
-            case VM::OpCode::AND:
-                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.AND(Registri[this->rx_2] , Registri[this->rx_2]);
-                break;
-
-            case VM::OpCode::NOT:
-                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.NOT(Registri[this->rx_2]);
-                break;
-            
-            case VM::OpCode::SHL:
-                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHL(Registri[this->rx_2] , Registri[this->rx_2]);
-                break;
-
-            case VM::OpCode::SHR:
-                Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHR(Registri[this->rx_2] , Registri[this->rx_2]);
-                break;
-
-            case VM::OpCode::CALL:
-                this->JUMP = true; //Important  ca sa nu marim automat program counterul 
-
-                Registri[VM::REG_SP]++;
-                Memorie->Write_Memory(Registri[VM::REG_SP] ,Registri[VM::REG_PC] + 1  );
-                if(!this->imm)    
-                    Registri[VM::REG_PC] = Registri[this->rx_1];
-                else
-                    Registri[VM::REG_PC] = this->imm;
-                
-                break;
-            case VM::OpCode::RET:
-                this->JUMP = true; //Important  ca sa nu marim automat program counterul 
-                Registri[VM::REG_PC] = Memorie->Read_Memory(Registri[VM::REG_SP]);
-
-                Registri[VM::REG_SP]--;
-                break;
-                
-            case VM::OpCode::MEM_LOCK:
-                Memorie->SetLockedMemory(Registri[this->rx_1] , Registri[this->rx_2]);
-                break;
-            }   
-
+            (this->*OP_TABLE[opcode])();
+     
         if(!this->JUMP)
             Registri[VM::REG_PC]++;
 
@@ -267,7 +92,8 @@ void CPU::DECODER(uint64_t & instructiune){
 
 void CPU::Start(){
     Memorie->PrintMemory();
-        
+    auto start = std::chrono::high_resolution_clock::now();
+
     while(this->RUNING){
 
         //Daca detectam o intrerupere incepem gestionarea sa 
@@ -282,9 +108,13 @@ void CPU::Start(){
             //Memorie.PrintMemory();
         }
 
-        std::this_thread::sleep_for(std::chrono::microseconds(1000));
+        //std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
     }
+     auto end = std::chrono::high_resolution_clock::now();
+    auto durata = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout<<"Timp total de executie: "<<durata.count()<<" qs"<<std::endl;
+
     printf("Programul sa oprit \n");
     Memorie->PrintMemory();
 }

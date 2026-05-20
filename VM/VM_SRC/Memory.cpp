@@ -109,6 +109,7 @@ void Memory::SetLockedMemory(uint64_t adr_start , uint64_t adr_end){
 
 //===================Functi-DEBUG==============================
 void Memory::PrintMemory(){
+    return;
     printf("Ram : \n");
     for(size_t i = 0 ; i < VM::RAM_SIZE ; i++){
         if(RAM[i] != 0)
