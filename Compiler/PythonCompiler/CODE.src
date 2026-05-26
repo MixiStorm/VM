@@ -14,9 +14,9 @@ add:
     cmp R11 Total
     jmq end
     jmp add
-
 end:
     load R12 [SP-1]
+    load R11 [R10 - R12]
     sto R10 R1
     halt
 

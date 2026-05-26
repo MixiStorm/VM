@@ -64,7 +64,7 @@ CURENT_ADDR = BOOT_LOADER_SIZE - 1 # Memoreaza pentru moment adresa curenta la c
 Source_File_Name = ""
 dir_include = [] #lista folosita in Preprocesare pentru a memora fisierele deja incluse 
 dir_define = {}
-LabelsDict = {}
+LabelsDict = {} #Dictionarul pentru labeuri 
 
 Variabile = {
     "var":{},
