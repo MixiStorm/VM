@@ -55,7 +55,7 @@ def Print_Var():
 
 #========FORNT_END=============
 #Citim prima data fisierul 
-Source_Code = PreCod.ReadFile(r"C:\Users\goguj\Desktop\VM\Compiler\PythonCompiler\CODE.src")
+Source_Code = PreCod.ReadFile(r"/home/mixistorm/Desktop/VM-main/Compiler/PythonCompiler/CODE.src")
 #Preprocesam codul sursa 
 Preprocesed_Source_Code = PreCod.Preprocesare(Source_Code)
 #Tokwnizam codul preprocesat 
@@ -68,5 +68,10 @@ PrintTokens(Tokens)
 Tokens = Optimizari.Procesare_Expansiuni(Tokens)
 
 PrintTokens(Tokens)
+
+import Linker
+LK = Linker.Linker(Tokens)
+print(Setings.LabelsDict)
+
 
 Print_Var()
