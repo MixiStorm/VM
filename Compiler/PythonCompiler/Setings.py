@@ -17,15 +17,15 @@ Registri = {
 "PC" : 15,
 }
 Opcodes = {
-"Add" : 0x01,
+"ADD" : 0x01,
 "SUB" : 0x02,
 "CMP" : 0x03,
 "SET" : 0x04,
 "LOAD" : 0x05,
 "STORE" : 0x06,
 "HALT" : 0x07,
-"ROM_Read" : 0x08,
-"ROM_Write" : 0x09,
+"ROM_READ" : 0x08,
+"ROM_WRITE" : 0x09,
 "MOV" : 0x0A,
 "PUSH" : 0x0B,
 "POP" : 0x0C,
@@ -71,6 +71,8 @@ Variabile = {
     "arr":{}
 }
 
+Source_Code_Path = r"C:\Users\goguj\Desktop\VM\VM\CODE\Code.src"
+Binery_Path = r"C:\Users\goguj\Desktop\VM\VM\CODE\ROM.rm"
 
 if __name__ == "__main__":
     pass

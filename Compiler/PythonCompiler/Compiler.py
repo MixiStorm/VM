@@ -1,6 +1,7 @@
 import os , Setings 
 import Preprocesare_cod as PreCod
 import Optimizari 
+import Linker
 
 def PrintTokens(Tokens):
     #Afisam codul preprocesat asa cum apare in source_code 
@@ -55,23 +56,18 @@ def Print_Var():
 
 #========FORNT_END=============
 #Citim prima data fisierul 
-Source_Code = PreCod.ReadFile(r"/home/mixistorm/Desktop/VM-main/Compiler/PythonCompiler/CODE.src")
+Source_Code = PreCod.ReadFile(Setings.Source_Code_Path)
 #Preprocesam codul sursa 
 Preprocesed_Source_Code = PreCod.Preprocesare(Source_Code)
 #Tokwnizam codul preprocesat 
 Tokens = PreCod.Tokenizare(Preprocesed_Source_Code )
 #Afisam toate labelurile 
-Tokens = PreCod.Procesare_labels_and_vars(Tokens)
-
-PrintTokens(Tokens)
+Tokens = PreCod.Procesare_vars(Tokens)
 
 Tokens = Optimizari.Procesare_Expansiuni(Tokens)
 
-PrintTokens(Tokens)
 
-import Linker
 LK = Linker.Linker(Tokens)
-print(Setings.LabelsDict)
-
-
-Print_Var()
+LK.Start()
+#print(f"DEBUG : \n Vars : {Setings.Variabile} \n\n Labels : \n {Setings.LabelsDict}")
+#PrintTokens(Tokens)

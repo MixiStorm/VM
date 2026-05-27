@@ -1,0 +1,1 @@
+python C:\Users\goguj\Desktop\VM\Compiler\PythonCompiler\Compiler.py

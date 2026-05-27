@@ -152,7 +152,7 @@ def Tokenizare(Lines : list ):
     return All_Tokens
 
 #detectam toate labelurile 
-def Procesare_labels_and_vars(Lines: list):
+def Procesare_vars(Lines: list):
     global LabelsDict 
     global Variabile
     
@@ -169,10 +169,10 @@ def Procesare_labels_and_vars(Lines: list):
         if not in_section:
             # 1. Procesarea de label-uri (ex: "main:")
             # Verificăm dacă primul token conține caracterul ":" la sfârșit
-            if line[0].endswith(":"):
-                label_name = line[0][:-1]
-                Setings.LabelsDict[label_name] = len(New_Tokens) # Folosește lungimea curentă din New_Tokens, nu indexul brut!
-                continue
+            # if line[0].endswith(":"):
+            #     label_name = line[0][:-1]
+            #     Setings.LabelsDict[label_name] = len(New_Tokens) # Folosește lungimea curentă din New_Tokens, nu indexul brut!
+            #     continue
             
             # 2. Detectarea intrării într-o secțiune (ex: "section data. {")
             if line[0] == "section":
@@ -224,6 +224,8 @@ def Procesare_labels_and_vars(Lines: list):
     #La final vom calcula adresele variabilelor 
     Calculate_Vars_addr()
     New_Tokens = Resolve_Var_Addr(New_Tokens)
+
+    
 
     return New_Tokens
 

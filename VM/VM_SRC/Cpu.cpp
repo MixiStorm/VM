@@ -75,13 +75,14 @@ void CPU::DECODER(uint64_t & instructiune){
         this->imm = static_cast<uint64_t>(instructiune >> 20 ); // Obtinem datele/ adresele 
         this->JUMP = false;
 
+        //printf("Instructiune : 0x%016llx   | PC : %ld  | SP : %ld | OPCODE :  %d  | RX1 : %d | RX2 : %d | RX3 : %d  | IMM : %d\n " , instructiune , Registri[VM::REG_PC] ,  Registri[VM::REG_SP] , opcode , rx_1 , rx_2 , rx_3 , imm );
 
         if(opcode == 0){
 			std::cerr<<"Opcode == 0 , vlaoare invalida , procesul se opreste "<<std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            this->Memorie->PrintMemory();
+            std::this_thread::sleep_for(std::chrono::seconds(10));
 			exit(100);
 		}
-        //printf("Instructiune : 0x%016llx   | PC : %ld  | SP : %ld \n " , instructiune , Registri[VM::REG_PC] ,  Registri[VM::REG_SP]);
 
         (this->*OP_TABLE[opcode])();
      
@@ -92,8 +93,9 @@ void CPU::DECODER(uint64_t & instructiune){
 
 
 void CPU::Start(){
-    Memorie->PrintMemory();
+    //Memorie->PrintMemory();
     auto start = std::chrono::high_resolution_clock::now();
+    Registri[VM::REG_PC] = 0 ; // Ne asiguram ca ProgramCounterul porneste intotdeauna de la 0 
 
     while(this->RUNING){
 

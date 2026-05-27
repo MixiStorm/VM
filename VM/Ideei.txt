@@ -33,7 +33,7 @@ JUMP_IF_EQ [adresa]: Sări doar dacă ultima comparare (CMP) a fost egală.
 HALT: Oprește execuția CPU-ului.
 
 
-=========UPCODE============
+=========OPCODE============
 
 Add -> 0x01 
 SUB -> 0x02
@@ -41,8 +41,8 @@ CMP -> 0x03
 SET -> 0x04
 LOAD -> 0x05
 STORE -> 0x06
-JUMP -> 0x07
-JUMP_IF_EQ -> 0x08
+JMP -> 0x07
+JMQ -> 0x08
 HALT -> 0x09
 ROM_Read -> 0x0A
 ROM_Write -> 0x0B
