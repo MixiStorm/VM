@@ -12,6 +12,8 @@ private:
     //Numele catre fisierul ROM
     std::string ROM_FILE_NAME = "";
 
+    //DEBUG
+    std::ofstream fout;
 
     struct MemLock{
         size_t start = 0; 
@@ -31,10 +33,10 @@ public:
     std::vector<uint64_t> * GetRam(){return &RAM;}
 
     //Functie pentru a aaccesa memoria dupa adresa 
-    uint64_t Read_Memory(uint64_t addres);
+    uint64_t Read_Memory(uint64_t addres , std::string device = "GPU");
 
      //Functie pentru a scrie in memoria RAM
-    void Write_Memory(uint64_t addres , uint64_t data);
+    void Write_Memory(uint64_t addres , uint64_t data , std::string device = "GPU" );
 
     //Functie care seteaza un range de adrese de memorie invalide pentru scriere 
     void SetLockedMemory(uint64_t start , uint64_t end);

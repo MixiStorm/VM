@@ -68,14 +68,30 @@ uint64_t Memory::Relativ_Adres(uint64_t adres , uint64_t data , bool ret ){
     return 0;
 }
 
-uint64_t  Memory::Read_Memory(uint64_t addres){
-    //Extrem de imporatnt de lucrat pe aceasta functie 
+uint64_t  Memory::Read_Memory(uint64_t addres , std::string device){
+    //Extrem de imporatnt de lucrat pe aceasta functie
+    if(VM::DEBUG){
+        //DEBUG
+        fout.open("Memory.log" , std::ios::app);
+        fout<<"|"<<device<<' '<<std::setbase(16)<<std::uppercase<<"|READ  | Addr : 0x"<<std::setfill('0')<<std::setw(16)<<addres<<" | VALUE : 0x"<<std::setfill('0')<<std::setw(16)<<Relativ_Adres(addres , 0 , 1)<<"\n";
+        fout.close();
+        //DEBUG END
+    }
+
     return Relativ_Adres(addres , 0 , 1);
+    
 }
 
 //Functie pentru a scrie in memoria RAM
-void Memory::Write_Memory(uint64_t addres , uint64_t data){
+void Memory::Write_Memory(uint64_t addres , uint64_t data , std::string device ){
+    if(VM::DEBUG){
+        //DEBUG
+        fout.open("Memory.log" , std::ios::app);
+        fout<<"|" <<device<<' '<<std::setbase(16)<<std::uppercase<<"|WRITE| Addr : 0x"<<std::setfill('0')<<std::setw(16)<<addres<<" | VALUE : 0x"<<std::setfill('0')<<std::setw(16)<<data<<"\n";
+        fout.close();
+    }
 
+    //std::cout<<"Se scrie la adresa : "<<addres<<" Valoarea : "<<data<<std::endl;
     //Trebuie sa verificam daca adresa la cre vrem sa scriem este blocata sau nu 
     if(!this->LockedMem.empty())
     {
@@ -111,14 +127,14 @@ void Memory::SetLockedMemory(uint64_t adr_start , uint64_t adr_end){
 void Memory::PrintMemory(){
     
     printf("Ram : \n");
-    for(size_t i = 0 ; i < VM::RAM_SIZE ; i++){
+    for(size_t   i = 0 ; i < VM::RAM_SIZE ; i++){
         if(RAM[i] != 0)
         {
             printf("Adress: %d   0x%016llx\n" , i , RAM[i]);
         }
 
     }
-
+    /*
     printf("\n\nRom : \n");
     for(size_t i = 0 ; i < VM::RAM_SIZE ; i++){
         if(ROM[i] != 0 )
@@ -126,4 +142,5 @@ void Memory::PrintMemory(){
             printf("Adress: %d   0x%016llx\n" , i , ROM[i]);
         }
     }
+    */        
 }

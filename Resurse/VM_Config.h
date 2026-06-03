@@ -1,6 +1,7 @@
 #pragma once
 #include<atomic> 
 #include <iostream>
+#include<iomanip>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -14,16 +15,20 @@
 #include"raylib.h"
 
 namespace VM{
+	//VARIABILE DE DEBUG
+	inline bool DEBUG = true;
+
 
     //Definim global variabilele ce determina dimensiunea ram si Rom 
     inline constexpr uint64_t RAM_SIZE = 131072; // 1 MB 131.072
     inline constexpr uint64_t ROM_SIZE = 1310720; // 10 MB 1.310.720
+	inline constexpr uint64_t VRAM_SIZE = 131072; // 1MB 
 
     inline constexpr uint64_t REG_PC = 15; // PROGRAM COUNTER
     inline constexpr uint64_t REG_SP = 14; // PROGRAM COUNTER
     inline constexpr uint64_t REG_EBP = 13; // PROGRAM COUNTER
 
-	inline constexpr uint64_t GPU_IO = RAM_SIZE - (RAM_SIZE / 100 ) * 10; //Adresa de start din memorie dedicata comunicari cu GPU 
+	inline constexpr uint64_t GPU_IO = 0x1CCD4; //Adresa de start din memorie dedicata comunicari cu GPU 
 	inline constexpr uint64_t INT_TABEL = GPU_IO -  (RAM_SIZE / 100 ) * 5; //Adresa de start a codului pentru a menegerea intreruperile
 	inline constexpr uint64_t INT_DATA = INT_TABEL - (RAM_SIZE / 100 ) * 5; //Adresa de start unde se vor pune datele de catre dispozitivele externe 
 

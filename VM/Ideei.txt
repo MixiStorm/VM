@@ -109,7 +109,9 @@ Pentru fiecare dispozitiv de input output vom aloca un spatiu de memorie din RAM
 
                 ->TEXT_MODE:
                     -Va afisa strict doar Text de culoare alba pe un fundal negru 
-                    -El va citi automat date din zona de memorie dedicata comuniari si va trata toate datele ca fiind text asci pe care il va afisa pe ecran 
+                    -Se asteapta la adresa : 0x1CCD4 ca CPU-ul sa puna valoarea 0xFFAA care semnifica ca a ascris date si ca gpu-ul poate sa citeasca din fisier
+                    
+
 
                 ->CELELALTE MODURI NU SUNT SUPORTATE INCA !!!!
                     Coming son

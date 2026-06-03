@@ -17,7 +17,20 @@ private:
     bool JUMP = false;
     std::mutex cpu_mutex;
 
+    //DEBUG
     bool StepIn = true; //Variabila pentru debug
+    struct STATE{
+        uint64_t Imm;
+        uint64_t Instructiune;
+        uint8_t Opcode ;
+        uint8_t Rx1;
+        uint8_t Rx2;
+        uint8_t Rx3;
+        std::vector<uint64_t>REG;
+    };
+    std::vector<STATE> CPU_STATE;
+    int MAX_HISTORY = 50;
+
 
 private:
    
@@ -105,9 +118,9 @@ void OP_CMP(){
 }
 void OP_STORE(){
     if(!this->imm)
-            Memorie->Write_Memory(Registri[this->rx_1] , Registri[this->rx_2]);
+            Memorie->Write_Memory(Registri[this->rx_1] , Registri[this->rx_2] , "CPU");
         else
-            Memorie->Write_Memory(Registri[this->rx_1] , this->imm);
+            Memorie->Write_Memory(Registri[this->rx_1] , this->imm , "CPU");
 }
 
 void OP_HALT(){
@@ -152,14 +165,14 @@ void OP_JMQ(){
 void OP_PUSH(){
     Registri[VM::REG_SP] ++;
 	if(!this->imm)
-		Memorie->Write_Memory(Registri[VM::REG_SP] , Registri[this->rx_1] ); 
+		Memorie->Write_Memory(Registri[VM::REG_SP] , Registri[this->rx_1] ,"CPU"); 
     else
-        Memorie->Write_Memory(Registri[VM::REG_SP] , this->imm );
+        Memorie->Write_Memory(Registri[VM::REG_SP] , this->imm ,"CPU");
 }
 
 void OP_POP(){
     if(this->imm)
-	    Registri[this->rx_1] = Memorie->Read_Memory( Registri[VM::REG_SP]);
+	    Registri[this->rx_1] = Memorie->Read_Memory( Registri[VM::REG_SP],"CPU");
 	
     Registri[VM::REG_SP] --;
 }
@@ -169,9 +182,9 @@ void OP_NOP(){
 
 void OP_LOAD(){
     if(!this->imm)
-        Registri[this->rx_1] = Memorie->Read_Memory(Registri[this->rx_2]);
+        Registri[this->rx_1] = Memorie->Read_Memory(Registri[this->rx_2] , "CPU");
     else
-        Registri[this->rx_1] = Memorie->Read_Memory(this->imm);
+        Registri[this->rx_1] = Memorie->Read_Memory(this->imm , "CPU");
 }
 
 void OP_ROM_READ(){
@@ -182,9 +195,9 @@ void OP_ROM_READ(){
     for(size_t i = Registri[this->rx_1] ; i <= Registri[this->rx_2] ; i++){
     
         size_t adresa = i;
-        uint64_t data = Memorie->Read_Memory(adresa);
+        uint64_t data = Memorie->Read_Memory(adresa, "CPU");
     
-        Memorie->Write_Memory(Registri[this->rx_3] + j , Memorie->Read_Memory(adresa));
+        Memorie->Write_Memory(Registri[this->rx_3] + j , Memorie->Read_Memory(adresa,  "CPU") , "CPU");
 		j++;
 	}
     Memorie->PrintMemory();
@@ -194,7 +207,7 @@ void OP_ROM_WRITE(){
     int j = 0 ;
 	for(size_t i = Registri[this->rx_1] ; i <= Registri[this->rx_2] ; i++){
         int addresa = Registri[this->rx_3] + j + VM::RAM_SIZE;
-	    Memorie->Write_Memory( addresa ,  Memorie->Read_Memory(i));
+	    Memorie->Write_Memory( addresa ,  Memorie->Read_Memory(i , "CPU") , "CPU");
 		j++;
 	}
 }
@@ -214,27 +227,27 @@ void OP_DEC(){
 }
 
  void OP_XOR(){
-    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.XOR(Registri[this->rx_2] , Registri[this->rx_2]);
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.XOR(Registri[this->rx_1] , Registri[this->rx_2]);
 }            
 void OP_OR(){
-    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.OR(Registri[this->rx_2] , Registri[this->rx_2]);
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.OR(Registri[this->rx_1] , Registri[this->rx_2]);
 }
 void OP_AND(){
-    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.AND(Registri[this->rx_2] , Registri[this->rx_2]);
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.AND(Registri[this->rx_1] , Registri[this->rx_2]);
 }
 void OP_NOT(){
-    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.NOT(Registri[this->rx_2]);
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.NOT(Registri[this->rx_1]);
 }
 void OP_SHL(){
-    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHL(Registri[this->rx_2] , Registri[this->rx_2]);
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHL(Registri[this->rx_1] , Registri[this->rx_2]);
 }
 void OP_SHR(){
-    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHR(Registri[this->rx_2] , Registri[this->rx_2]);
+    Registri[this->rx_1] = Unitatea_Logica_Aritmetica.SHR(Registri[this->rx_1] , Registri[this->rx_2]);
 }
 void OP_CALL(){
     this->JUMP = true; //Important  ca sa nu marim automat program counterul 
     Registri[VM::REG_SP]++;
-    Memorie->Write_Memory(Registri[VM::REG_SP] ,Registri[VM::REG_PC] + 1  );
+    Memorie->Write_Memory(Registri[VM::REG_SP] ,Registri[VM::REG_PC] + 1  , "CPU");
     if(!this->imm)    
         Registri[VM::REG_PC] = Registri[this->rx_1];
     else
@@ -242,7 +255,7 @@ void OP_CALL(){
 }
 void OP_RET(){
     this->JUMP = true; //Important  ca sa nu marim automat program counterul 
-    Registri[VM::REG_PC] = Memorie->Read_Memory(Registri[VM::REG_SP]);
+    Registri[VM::REG_PC] = Memorie->Read_Memory(Registri[VM::REG_SP] , "CPU");
     Registri[VM::REG_SP]--;
 }            
 void OP_MEM_LOCK(){

@@ -75,11 +75,48 @@ void CPU::DECODER(uint64_t & instructiune){
         this->imm = static_cast<uint64_t>(instructiune >> 20 ); // Obtinem datele/ adresele 
         this->JUMP = false;
 
-        //printf("Instructiune : 0x%016llx   | PC : %ld  | SP : %ld | OPCODE :  %d  | RX1 : %d | RX2 : %d | RX3 : %d  | IMM : %d\n " , instructiune , Registri[VM::REG_PC] ,  Registri[VM::REG_SP] , opcode , rx_1 , rx_2 , rx_3 , imm );
+        if(VM::DEBUG){
+            STATE s;
+            s.Instructiune = instructiune;
+            s.Imm = this->imm;
+            s.Opcode = opcode;
+            s.Rx1 = rx_1;
+            s.Rx2 = rx_2;
+            s.Rx3 = rx_3;
+            s.REG = Registri;
+            CPU_STATE.push_back(s);
+
+            if(CPU_STATE.size() > MAX_HISTORY)
+                CPU_STATE.clear();
+        }
+
+        printf("Instructiune : 0x%016llx   | PC : %ld  | SP : %ld | OPCODE :  %d  | RX1 : %d | RX2 : %d | RX3 : %d  | IMM : %d\n " , instructiune , Registri[VM::REG_PC] ,  Registri[VM::REG_SP] , opcode , rx_1 , rx_2 , rx_3 , imm );
 
         if(opcode == 0){
 			std::cerr<<"Opcode == 0 , vlaoare invalida , procesul se opreste "<<std::endl;
-            this->Memorie->PrintMemory();
+            printf("PC : %ld \n" , Registri[VM::REG_PC]);
+            //this->Memorie->PrintMemory();
+            if(VM::DEBUG){
+                for(auto & time_stamp : CPU_STATE){
+                    printf("=========================================\n");
+                    printf("Instructiune : 0x%016llx   | OPCODE :  %d  | RX1 : %d | RX2 : %d | RX3 : %d  | IMM : %d\n " , time_stamp.Instructiune , time_stamp.Opcode , time_stamp.Rx1 , time_stamp.Rx2 , time_stamp.Rx3 , time_stamp.Imm);
+                    printf("Registri : \n");
+                    for(size_t i = 0 ; i <  time_stamp.REG.size( ); i++){
+                        uint64_t REG = time_stamp.REG[i];
+                        if(i == 15)
+                            printf("PC : 0x%016llx\n" , REG);
+                        else if(i == 14)
+                            printf("SP : 0x%016llx\n" , REG);
+                        else if(i == 13)
+                            printf("EBP : 0x%016llx\n" , REG);
+                        else 
+                            printf("R%d : 0x%016llx\n" , i , REG);
+                    }
+                    printf("=========================================\n\n");
+                }
+            }
+
+
             std::this_thread::sleep_for(std::chrono::seconds(10));
 			exit(100);
 		}

@@ -1,11 +1,61 @@
-#define Total 3
-#define N 1
+#define GPU_IO 117972
+#define 0xFFAA 65450
+
+//ABI
+// P1 = R0 | P2 =  R1 | P3 = R2 | P4 = R3
 
 _start:
-    set R0 255
-    set R10 1000
-    jmp end
+    set R0 1 //Modul de initializare GPU
+    call init_gpu
 
-end:
-    sto R10 R0
+    set R0 68 //Litera
+    set R1 2 //Line
+    set R2 2 //Column
+    set R3 0 //Index
+    call write_character
+
     halt
+
+
+init_gpu:
+    set R7 GPU_IO
+    inc R7 
+    sto R7 R0 
+    dec R7 
+    sto R7 0xFFAA
+    ret
+
+
+write_character:
+    //PAR 1 => Caracter 
+    //PAR 2 => Line
+    //PAR 3 => Column
+    //PAR 4 => INDEX
+    call can_write
+
+    set R8 8
+
+    mov R7 R2 // AM plasat column-ul
+    shl R7 R8 // Shift-left 8 pos 
+    or R7 R1
+    shl R7 R8
+    or R7 R0 
+
+    set R8 GPU_IO 
+    add R8 2
+    add R8 R3
+    sto R8 R7
+
+    //Setam flagul 
+    set R8 GPU_IO
+    sto R8 0xFFAA
+
+    ret 
+
+can_write:
+
+    load R0 GPU_IO
+    cmp R0 0xFFAA 
+    jmq can_write
+
+    ret
