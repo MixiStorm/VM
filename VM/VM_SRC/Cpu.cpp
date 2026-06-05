@@ -90,7 +90,7 @@ void CPU::DECODER(uint64_t & instructiune){
                 CPU_STATE.clear();
         }
 
-        printf("Instructiune : 0x%016llx   | PC : %ld  | SP : %ld | OPCODE :  %d  | RX1 : %d | RX2 : %d | RX3 : %d  | IMM : %d\n " , instructiune , Registri[VM::REG_PC] ,  Registri[VM::REG_SP] , opcode , rx_1 , rx_2 , rx_3 , imm );
+        //printf("Instructiune : 0x%016llx   | PC : %ld  | SP : %ld | OPCODE :  %d  | RX1 : %d | RX2 : %d | RX3 : %d  | IMM : %d\n " , instructiune , Registri[VM::REG_PC] ,  Registri[VM::REG_SP] , opcode , rx_1 , rx_2 , rx_3 , imm );
 
         if(opcode == 0){
 			std::cerr<<"Opcode == 0 , vlaoare invalida , procesul se opreste "<<std::endl;

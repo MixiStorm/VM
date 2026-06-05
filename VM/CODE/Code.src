@@ -14,6 +14,11 @@ _start:
     set R3 0 //Index
     call write_character
 
+    set R0 69 
+    set R2 3 
+    set R3 1 
+    call write_character
+
     halt
 
 
@@ -39,7 +44,8 @@ write_character:
     shl R7 R8 // Shift-left 8 pos 
     or R7 R1
     shl R7 R8
-    or R7 R0 
+    or R7 R0
+    sto R0 1000 
 
     set R8 GPU_IO 
     add R8 2
@@ -53,9 +59,8 @@ write_character:
     ret 
 
 can_write:
-
-    load R0 GPU_IO
-    cmp R0 0xFFAA 
+    load R10 GPU_IO
+    cmp R10 0xFFAA
     jmq can_write
 
     ret

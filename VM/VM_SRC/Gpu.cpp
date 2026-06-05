@@ -97,17 +97,16 @@ void GPU::TEXT_MODE_PRINT_TEXT(){
         if(CanRead()){
                 uint64_t Byte_Of_Data = 0xffffffffffffffff; 
                 uint64_t GPU_TEXT_MEM = VM::GPU_IO + 2;
-
+                size_t i = 0 ; 
                 while (Byte_Of_Data != 0 ){
                         Byte_Of_Data = mem->Read_Memory(GPU_TEXT_MEM++);
-                        VRAM.push_back(Byte_Of_Data);
+                        if(Byte_Of_Data != 0){
+                                printf("TAR : 0x%016lX\n" , Byte_Of_Data);
+                                VRAM[i++] = Byte_Of_Data;
+                        }
                 }
                 mem->Write_Memory(VM::GPU_IO , 0);
-                /*
-                printf("[DEBUG] VRAM : \n");
-                for(size_t i = 0  ; i < VRAM.size() ; i++)
-                        printf("ADDR : %ld  |  VALUE: 0x%016llx \n" , i , VRAM[i]);
-                */
+
         }
         //Acum intram in pipeline-ul de desenare a textului pe ecran 
         char Litera ;
@@ -115,18 +114,22 @@ void GPU::TEXT_MODE_PRINT_TEXT(){
         uint8_t Column ;
         
         uint64_t V_Index = 0 ;
-        uint64_t Data = 0xffffffffffffffff;
+        uint64_t Data =VRAM[V_Index];
+        //printf("DEBUG !!!!!  GPU _ DATA : 0x%016llX \n" , Data);
         //Citim intreg vramul caracter cu caracter 
         while(Data != 0 ){
-                Data = VRAM[V_Index];
+                Data =VRAM[V_Index];
+                if(Data == 0)
+                        break;
                 //printf("[DEBUG] GPU_DATA GOT : 0x%016llx  , | %ld  | VRAM addr: 0x%016llx \n" , Data , Data , V_Index);
                 V_Index++;
 
                 Litera = Data;
                 Line = Data >> 8;
                 Column = Data >> 16;
-
-                DrawText(&Litera , Text_Start_x * Column , Text_Start_y * Line , Font_Size , WHITE);
+                char Display_Text [2] = {Litera , '\0'};
+                
+                DrawText(Display_Text , Text_Start_x * Column , Text_Start_y * Line , Font_Size , WHITE);
         }
         
 }

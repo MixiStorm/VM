@@ -6,9 +6,14 @@
 
 Memory::Memory(std::string FileName ):RAM(VM::RAM_SIZE) , ROM(VM::ROM_SIZE) , ROM_FILE_NAME(FileName){
 
+        //Curatam fisierul de log la fiecare run 
+        if(VM::DEBUG){
+            fout.open("Memory.log");
+            fout.close();
+        }
+        
         //Incarcam datele din fisier in ROM 
         Load_Rom();
-
         //Incarcam primele 8 instruciuni in RAM din ROM
         Load_From_Rom_In_Ram_Start_UP();
         if(ROM_FILE_NAME == "")
